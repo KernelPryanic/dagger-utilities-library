@@ -1,0 +1,14 @@
+# Pants
+.pants.d/
+.pids/
+
+# VSCode
+.vscode/
+
+# Python
+dist/
+*.egg-info/
+__pycache__/
+
+# Other
+.DS_Store
