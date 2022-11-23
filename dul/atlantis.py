@@ -17,5 +17,6 @@ def populate_config(
         ).
         with_workdir(root).
         with_env_variable("PYTHONPATH", mnt_path).
-        exec(["python", "-m", "atlantis.populate_config", "--check"])
+        with_entrypoint("python").
+        exec(["-m", "atlantis.populate_config", "--check"])
     )
