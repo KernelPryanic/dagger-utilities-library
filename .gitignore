@@ -9,6 +9,7 @@
 dist/
 *.egg-info/
 __pycache__/
+build/
 
 # Other
 .DS_Store
