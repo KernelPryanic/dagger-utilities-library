@@ -3,7 +3,7 @@ import platform
 import random
 import string
 
-from dagger.api.gen import Client, Container, DirectoryID
+from dagger.api.gen import Client, Container, Directory
 
 scripts_dir = os.path.join(
     os.path.dirname(os.path.realpath(__file__)),
@@ -24,7 +24,7 @@ def locally() -> bool:
 
 
 def init(
-    client: Client, image_name: str, src_dir_id: DirectoryID = None
+    client: Client, image_name: str, src_dir: Directory = None
 ) -> tuple[Container, str]:
     cnt_mnt_dir = f"/{random_string(8)}-src"
     pipeline = (
@@ -32,7 +32,7 @@ def init(
         from_(image_name)
     )
 
-    if src_dir_id is not None:
-        pipeline = pipeline.with_mounted_directory(cnt_mnt_dir, src_dir_id)
+    if src_dir is not None:
+        pipeline = pipeline.with_mounted_directory(cnt_mnt_dir, src_dir)
 
     return pipeline, cnt_mnt_dir

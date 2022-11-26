@@ -46,6 +46,6 @@ def tfsec(client: Client, container: Container, root: str) -> Container:
         with_entrypoint("bash").
         exec([
             os.path.join(mnt_path, "terraform", "tfsec.sh"),
-            "-d", root, "||", "true"
+            "-d", root,
         ])
     )
