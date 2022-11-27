@@ -4,7 +4,7 @@ import subprocess
 
 import anyio
 import structlog
-from common import structlogging
+from common.structlogging import *
 from common import filesystem
 
 parser = argparse.ArgumentParser()
@@ -12,7 +12,6 @@ parser.add_argument("dir", nargs='?', default=os.getcwd())
 parser.add_argument("-l", "--local", action='store_true')
 args = parser.parse_args()
 
-structlogging.setup()
 log = structlog.get_logger()
 
 readme_name = "README.md"
