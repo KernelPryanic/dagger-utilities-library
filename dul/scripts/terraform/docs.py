@@ -4,8 +4,8 @@ import subprocess
 
 import anyio
 import structlog
-from common.structlogging import *
-from common import filesystem
+from dul.scripts.common.structlogging import *
+from dul.scripts.common import filesystem
 
 parser = argparse.ArgumentParser()
 parser.add_argument("dir", nargs='?', default=os.getcwd())

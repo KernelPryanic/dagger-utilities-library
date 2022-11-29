@@ -1,2 +1,2 @@
-dagger-io==0.2.*
+anyio==3.6.*
 structlog==22.2.*
