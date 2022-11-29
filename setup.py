@@ -8,6 +8,9 @@ with open("requirements.txt") as f:
 with open(join("dul", "pipelines", "requirements.txt")) as f:
     pipeline_requirements = f.read().splitlines()
 
+with open(join("dul", "scripts", "requirements.txt")) as f:
+    scripts_requirements = f.read().splitlines()
+
 setup(
     name="dul",
     version="0.1.0",
@@ -17,7 +20,8 @@ setup(
     packages=find_namespace_packages(),
     install_requires=requirements,
     extras_require={
-        "pipelines": pipeline_requirements
+        "pipelines": pipeline_requirements,
+        "scripts": scripts_requirements,
     },
     package_data={
         "": ["scripts/**/*.sh"],

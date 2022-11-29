@@ -1,6 +1,0 @@
-python-hcl2==3.0.5
-ruamel.yaml==0.17.21
-
-# terraform/docs.py
-structlog==22.2.*
-anyio==3.6.*
