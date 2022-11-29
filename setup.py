@@ -1,7 +1,12 @@
-from setuptools import find_packages, setup
+from os.path import join
+
+from setuptools import find_namespace_packages, setup
 
 with open("requirements.txt") as f:
-    required = f.read().splitlines()
+    requirements = f.read().splitlines()
+
+with open(join("dul", "pipelines", "requirements.txt")) as f:
+    pipeline_requirements = f.read().splitlines()
 
 setup(
     name="dul",
@@ -9,9 +14,12 @@ setup(
     description="Dagger Utilities Library",
     author="Daniil Trishkin",
     license="MIT",
-    packages=find_packages(),
-    install_requires=required,
+    packages=find_namespace_packages(),
+    install_requires=requirements,
+    extras_require={
+        "pipelines": pipeline_requirements
+    },
     package_data={
-        "": ["scripts/**/*"],
+        "": ["scripts/**/*.sh"],
     },
 )

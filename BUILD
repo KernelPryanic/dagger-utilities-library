@@ -4,13 +4,14 @@ resources(
     name="res",
     sources=[
         "requirements.txt",
-        "dul/scripts/terraform/*.sh",
+        "dul/**/requirements.txt",
+        "dul/scripts/**/*.sh",
     ]
 )
 
 python_sources(
     name="lib",
-    sources=["dul/*.py", "setup.py"],
+    sources=["dul/**/*.py", "setup.py"],
     dependencies=[":res"],
 )
 

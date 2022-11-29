@@ -7,7 +7,7 @@ import string
 import structlog
 from dagger.api.gen import Client, Container, Directory
 
-from .scripts.common.structlogging import *
+from dul.scripts.common.structlogging import *
 
 log = structlog.get_logger()
 

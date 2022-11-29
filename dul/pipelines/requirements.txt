@@ -1,2 +1,1 @@
 dagger-io==0.2.*
-structlog==22.2.*
