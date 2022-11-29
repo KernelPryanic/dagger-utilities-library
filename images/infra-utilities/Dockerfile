@@ -25,6 +25,6 @@ RUN curl -sSLo ./tfsec https://github.com/aquasecurity/tfsec/releases/download/v
     mv tfsec /usr/local/bin/ && \
     rm -rf *
 
-RUN pip install --no-cache-dir "git+https://github.com/KernelPryanic/dagger-utilities-library.git@library-structure#egg=dul[pipelines,scripts]"
+RUN pip install --no-cache-dir "git+https://github.com/KernelPryanic/dagger-utilities-library.git@library-structure#egg=dul[scripts]"
 
 WORKDIR /opt
