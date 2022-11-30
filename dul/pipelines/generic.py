@@ -67,6 +67,27 @@ def get_method_name():
     return inspect.stack()[1][3]
 
 
+def parse_options(
+    arguments, options, options_reflection: dict[str, str], method_name: str
+) -> list:
+    for k, v in arguments.items():
+        if v is not None:
+            opt = options_reflection[method_name].get(k)
+            val = getattr(v, "value", v)
+            if opt is not None:
+                options[opt] = val
+
+    processed_options = []
+    for k, v in options.items():
+        if type(v) == list:
+            for o in v:
+                val = getattr(o, "value", o)
+                processed_options.extend([k, val])
+        else:
+            processed_options.extend([k, v])
+    
+    return processed_options
+
 # async def preserve_workdir(func: callable):
 #     async def wrapper(*args, **kwargs):
 #         container = kwargs.get("container")

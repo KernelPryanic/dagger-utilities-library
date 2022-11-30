@@ -6,7 +6,8 @@ from dagger.api.gen import Container
 from dul.scripts.common.structlogging import *
 
 from . import curl
-from .generic import get_job_name, get_method_name, get_module_name
+from .generic import (get_job_name, get_method_name, get_module_name,
+                      parse_options)
 
 log = structlog.get_logger()
 
@@ -25,18 +26,21 @@ class Formats(Enum):
     SARIF = "sarif"
 
 
-class OptionsReflection(Enum):
-    format = "--format"
-    config = "--config"
-    ignore_module = "--ignore-module"
-    enable_rule = "--enable-rule"
-    disable_rule = "--disable-rule"
-    only = "--only"
-    enable_plugin = "--enable-plugin"
-    vars_file = "--var-file"
-    module = "--module"
-    force = "--force"
-    color = "--color"
+options_reflection = {
+    "exec": {
+        "format": "--format",
+        "config": "--config",
+        "ignore_module": "--ignore-module",
+        "enable_rule": "--enable-rule",
+        "disable_rule": "--disable-rule",
+        "only": "--only",
+        "enable_plugin": "--enable-plugin",
+        "vars_file": "--var-file",
+        "module": "--module",
+        "force": "--force",
+        "color": "--color"
+    }
+}
 
 
 def install(container: Container, version: str):
@@ -63,26 +67,16 @@ def exec(
 ) -> Container:
     arguments = locals()
     options = {}
-
-    for k, v in arguments.items():
-        if v is not None:
-            opt = getattr(OptionsReflection, k, None)
-            val = getattr(v, "value", v)
-            if opt is not None:
-                options[opt.value] = val
+    method_name = get_method_name()
 
     if vars is not None:
         for k, v in vars.items():
             options.setdefault("--var", [])
             options["--var"].append(f"'{k}={v}'")
 
-    processed_options = []
-    for k, v in options.items():
-        if type(v) == list:
-            for o in v:
-                processed_options.extend([k, o])
-        else:
-            processed_options.extend([k, v])
+    processed_options = parse_options(
+        arguments, options, options_reflection, method_name
+    )
 
     log.info(
         "Initializing module", job=get_job_name(),
