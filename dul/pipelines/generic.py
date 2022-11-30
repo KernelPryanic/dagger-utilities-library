@@ -41,16 +41,29 @@ def init(
     log.info("Initializing pipeline", job=get_job_name(), image=image_name)
 
     if src_dir is not None:
-        log.info("Mounting source directory", job=get_job_name(), image=image_name, mount=cnt_mnt_dir)
+        log.info("Mounting source directory", job=get_job_name(),
+                 image=image_name, mount=cnt_mnt_dir)
         pipeline = pipeline.with_mounted_directory(cnt_mnt_dir, src_dir)
 
     return pipeline, cnt_mnt_dir
 
 
+async def get_scripts_dir(container: Container) -> str:
+    return await container.with_exec(
+        "bash", "-c",
+        "python -c 'from dul import scripts; from os.path import dirname; print(dirname(pipelines.__file__))'"
+    ).stdout()
+
+
 def get_job_name():
     return inspect.stack()[2][3]
 
+
 def get_module_name():
+    return inspect.getmodule(inspect.stack()[1][0]).__name__
+
+
+def get_method_name():
     return inspect.stack()[1][3]
 
 

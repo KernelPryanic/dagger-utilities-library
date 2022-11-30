@@ -15,7 +15,7 @@ class APKActions(Enum):
     UNINSTALL = "delete"
 
 
-def apk(
+def exec(
     container: Container,
     action: APKActions, *packages: str
 ) -> Container:

@@ -1,5 +1,3 @@
-from enum import Enum
-
 import structlog
 from dagger.api.gen import Container
 
@@ -10,30 +8,27 @@ from .generic import get_job_name, get_module_name
 log = structlog.get_logger()
 
 
-class PIPActions(Enum):
-    INSTALL = "install"
-    UNINSTALL = "uninstall"
-
-
-def pip(
-    container: Container, action: PIPActions, *packages: str
+def exec(
+    container: Container,
+    url: str, options: str = ""
 ) -> Container:
 
-    if len(packages) == 0:
+    if len(url) == 0:
         log.warning(
-            "No packages passed to the module",
+            "URL is not defined",
             job=get_job_name(),
             module=get_module_name(),
-            action=action.name
+            url=url,
+            options=options
         )
         return container
 
     log.info(
         "Initializing module", job=get_job_name(),
-        module=get_module_name(), action=action.name, packages=packages
+        module=get_module_name(), url=url, options=options
     )
 
     return (
         container.
-        with_exec(["pip", action.value] + list(packages))
+        with_exec(["curl", url] + ([options] if len(options) > 0 else []))
     )
