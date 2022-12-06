@@ -7,14 +7,9 @@ from dul.scripts.common.structlogging import *
 
 from . import curl
 from .generic import (get_job_name, get_method_name, get_module_name,
-                      parse_options)
+                      parse_options, preserve_workdir)
 
 log = structlog.get_logger()
-
-
-class Actions(Enum):
-    LINT = ""
-    INIT = "--init"
 
 
 class Formats(Enum):
@@ -58,8 +53,25 @@ def install(container: Container, version: str):
     )
 
 
-def exec(
-    container: Container, action: Actions = Actions.LINT, target: str = "**/*.tf",
+def init(container: Container, root: str = None):
+    log.info(
+        "Initializing module", job=get_job_name(),
+        module=get_module_name(), method=get_method_name()
+    )
+
+    pipeline = container
+    if root is not None:
+        pipeline = container.with_workdir(root)
+
+    return (
+        pipeline.
+        with_workdir(root).
+        with_exec(["tflint", "--init"])
+    )
+
+
+def lint(
+    container: Container, root: str = None, target: str = "**/*.tf",
     format: Formats = Formats.DEFAULT, config: str = None, ignore_module: str = None,
     enable_rule: str = None, disable_rule: str = None, only: str = None,
     enable_plugin: str = None, vars_file: str = None, vars: dict[str, str] = None,
@@ -80,11 +92,15 @@ def exec(
 
     log.info(
         "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=get_method_name(),
-        action=action.name, options=processed_options,
+        module=get_module_name(), method=method_name,
+        options=processed_options,
     )
 
+    pipeline = container
+    if root is not None:
+        pipeline = container.with_workdir(root)
+
     return (
-        container.
-        with_exec(["tflint", action.value, target] + processed_options)
+        pipeline.
+        with_exec(["tflint", target] + processed_options)
     )

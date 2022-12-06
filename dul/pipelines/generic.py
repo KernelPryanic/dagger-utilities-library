@@ -1,3 +1,4 @@
+import asyncio
 import inspect
 import os
 import platform
@@ -55,16 +56,16 @@ async def get_scripts_dir(container: Container) -> str:
     ).stdout()
 
 
-def get_job_name():
-    return inspect.stack()[2][3]
+def get_job_name(level=2):
+    return inspect.stack()[level][3]
 
 
-def get_module_name():
-    return inspect.getmodule(inspect.stack()[1][0]).__name__
+def get_module_name(level=1):
+    return inspect.getmodule(inspect.stack()[level][0]).__name__
 
 
-def get_method_name():
-    return inspect.stack()[1][3]
+def get_method_name(level=1):
+    return inspect.stack()[level][3]
 
 
 def parse_options(
@@ -85,17 +86,26 @@ def parse_options(
                 processed_options.extend([k, val])
         else:
             processed_options.extend([k, v])
-    
+
     return processed_options
 
-# async def preserve_workdir(func: callable):
-#     async def wrapper(*args, **kwargs):
-#         container = kwargs.get("container")
-#         if container is not None:
-#             cur_workdir = await container.workdir()
-#             c = func(*args, **kwargs)
 
-#             return c.with_workdir(cur_workdir)
+async def preserve_workdir(func: callable, *args, **kwargs):
+    a = list(filter(lambda x: type(x) == Container, args))
+    pipe = func(*args, **kwargs)
+    if len(a) > 0:
+        cur_workdir = await a[0].workdir()
+        pipe = pipe.with_workdir(cur_workdir)
+    return pipe
 
-#     p = await wrapper
-#     return p
+
+def _preserve_workdir(func: callable):
+    async def wrapper(*args, **kwargs):
+        a = list(filter(lambda x: type(x) == Container, args))
+        pipe = func(*args, **kwargs)
+        if len(a) > 0:
+            cur_workdir = await a[0].workdir()
+            pipe = pipe.with_workdir(cur_workdir)
+        return pipe
+
+    return wrapper
