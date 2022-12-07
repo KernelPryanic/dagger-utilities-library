@@ -57,39 +57,34 @@ def _exec(
 
 def get(
     container: Container, url: str,
-    headers: dict = None, payload: dict = None,
-    output: str = None, root: str = None
+    headers: dict = None, output: str = None, root: str = None
 ) -> Container:
-    return _exec(container, CurlActions.GET, url, headers, payload, output, root)
+    return _exec(container, CurlActions.GET, url=url, headers=headers, output=output, root=root)
 
 
 def post(
     container: Container, url: str,
-    headers: dict = None, payload: dict = None,
-    output: str = None, root: str = None
+    headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, CurlActions.POST, url, headers, payload, output, root)
+    return _exec(container, CurlActions.POST, url=url, headers=headers, payload=payload, root=root)
 
 
 def put(
     container: Container, url: str,
-    headers: dict = None, payload: dict = None,
-    output: str = None, root: str = None
+    headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, CurlActions.PUT, url, headers, payload, output, root)
+    return _exec(container, CurlActions.PUT, url=url, headers=headers, payload=payload, root=root)
 
 
 def patch(
     container: Container, url: str,
-    headers: dict = None, payload: dict = None,
-    output: str = None, root: str = None
+    headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, CurlActions.PATCH, url, headers, payload, output, root)
+    return _exec(container, CurlActions.PATCH, url=url, headers=headers, payload=payload, root=root)
 
 
 def delete(
     container: Container, url: str,
-    headers: dict = None, payload: dict = None,
-    output: str = None, root: str = None
+    headers: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, CurlActions.DELETE, url, headers, payload, output, root)
+    return _exec(container, CurlActions.DELETE, url=url, headers=headers, root=root)

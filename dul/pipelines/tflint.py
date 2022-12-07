@@ -7,7 +7,7 @@ from dul.scripts.common.structlogging import *
 
 from . import curl
 from .generic import (get_job_name, get_method_name, get_module_name,
-                      parse_options, preserve_workdir)
+                      parse_options)
 
 log = structlog.get_logger()
 

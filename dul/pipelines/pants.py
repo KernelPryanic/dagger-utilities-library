@@ -34,16 +34,20 @@ class Linters(Enum):
 
 options_reflection = {
     "format": {
-        "only": "--only"
+        "only": "--fmt-only"
     },
     "lint": {
-        "only": "--only",
-        "skip_formatters": "--skip_formatters"
+        "only": "--lint-only",
+        "skip_formatters": "--lint-skip-formatters"
     }
 }
 
 
 def install(container: Container, version: str):
+    pass
+
+
+def _exec():
     pass
 
 

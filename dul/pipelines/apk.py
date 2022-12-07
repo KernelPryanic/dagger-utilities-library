@@ -10,12 +10,12 @@ from .generic import get_job_name, get_method_name, get_module_name
 log = structlog.get_logger()
 
 
-class APKActions(Enum):
+class Actions(Enum):
     INSTALL = "add"
     UNINSTALL = "delete"
 
 
-def _exec(container: Container, action: APKActions, *packages: str) -> Container:
+def _exec(container: Container, action: Actions, *packages: str) -> Container:
     if len(packages) == 0:
         log.warning(
             "No packages passed",
@@ -33,14 +33,16 @@ def _exec(container: Container, action: APKActions, *packages: str) -> Container
     return (
         container.
         with_exec(
-            ["apk", action.value, "--update", "--no-cache"] + list(packages)
+            ["apk", action.value] + (
+                ["--update", "--no-cache"] if action.value == Actions.INSTALL else []
+            ) + list(packages)
         )
     )
 
 
 def install(container: Container, packages: list[str]) -> Container:
-    return _exec(container, APKActions.INSTALL, *packages)
+    return _exec(container, Actions.INSTALL, *packages)
 
 
 def uninstall(container: Container, packages: list[str]) -> Container:
-    return _exec(container, APKActions.UNINSTALL, *packages)
+    return _exec(container, Actions.UNINSTALL, *packages)
