@@ -97,8 +97,7 @@ def install(container: Container, root: str = None) -> Container:
 
     log.info(
         "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=method_name,
-        action=method_name
+        module=get_module_name(), method=method_name
     )
 
     return (
@@ -110,7 +109,7 @@ def install(container: Container, root: str = None) -> Container:
 def _exec(
     container: Container, action: Actions, target: str = "::", options: dict = {},
     root: str = None, *args, **kwargs
-):
+) -> Container:
     arguments = locals()
     method_name = get_method_name(2)
     processed_options = parse_options(
@@ -120,7 +119,7 @@ def _exec(
     log.info(
         "Initializing module", job=get_job_name(3),
         module=get_module_name(2), method=method_name,
-        action=method_name, options=processed_options,
+        options=processed_options
     )
 
     pipeline = container
