@@ -107,20 +107,19 @@ def install(container: Container, root: str = None) -> Container:
     )
 
 
-def format(
-    container: Container, target: str = "::",
-    only: list(Formatters) = None, root: str = None
-) -> Container:
+def _exec(
+    container: Container, action: Actions, target: str = "::", options: dict = {},
+    root: str = None, *args, **kwargs
+):
     arguments = locals()
-    options = {}
-    method_name = get_method_name()
+    method_name = get_method_name(2)
     processed_options = parse_options(
         arguments, options, options_reflection, method_name
     )
 
     log.info(
-        "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=method_name,
+        "Initializing module", job=get_job_name(3),
+        module=get_module_name(2), method=method_name,
         action=method_name, options=processed_options,
     )
 
@@ -130,8 +129,15 @@ def format(
 
     return (
         pipeline.
-        with_exec(["./pants", Actions.FORMAT, target] + processed_options)
+        with_exec(["./pants", action.value, target] + processed_options)
     )
+
+
+def format(
+    container: Container, target: str = "::",
+    only: list(Formatters) = None, root: str = None
+) -> Container:
+    return _exec(container, Actions.FORMAT, target=target, root=root, only=only)
 
 
 def lint(
@@ -139,136 +145,48 @@ def lint(
     only: list(Linters) = None, skip_formatters: bool = False,
     root: str = None
 ) -> Container:
-    arguments = locals()
-    options = {}
-    method_name = get_method_name()
-    processed_options = parse_options(
-        arguments, options, options_reflection, method_name
-    )
-
-    log.info(
-        "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=method_name,
-        action=method_name, options=processed_options,
-    )
-
-    pipeline = container
-    if root is not None:
-        pipeline = container.with_workdir(root)
-
-    return (
-        pipeline.
-        with_exec(["./pants", Actions.LINT, target] + processed_options)
+    return _exec(
+        container, Actions.LINT, target=target, root=root,
+        only=only, skip_formatters=skip_formatters
     )
 
 
 def package(
     container: Container, target: str = "::", root: str = None
 ) -> Container:
-    arguments = locals()
-    options = {}
-    method_name = get_method_name()
-    processed_options = parse_options(
-        arguments, options, options_reflection, method_name
-    )
-
-    log.info(
-        "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=method_name,
-        action=method_name, options=processed_options,
-    )
-
-    pipeline = container
-    if root is not None:
-        pipeline = container.with_workdir(root)
-
-    return (
-        pipeline.
-        with_exec(["./pants", Actions.PACKAGE, target] + processed_options)
-    )
+    return _exec(container, Actions.PACKAGE, target=target, root=root)
 
 
 def run(
-    container: Container, target: str = "::", run_args: str = None,
-    run_cleanup: bool = None, run_debug_adapter: bool = None, root: str = None
+    container: Container, target: str = "::", args: str = None,
+    cleanup: bool = None, debug_adapter: bool = None, root: str = None
 ) -> Container:
-    arguments = locals()
-    options = {}
-    method_name = get_method_name()
-    processed_options = parse_options(
-        arguments, options, options_reflection, method_name
-    )
-
-    log.info(
-        "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=method_name,
-        action=method_name, options=processed_options,
-    )
-
-    pipeline = container
-    if root is not None:
-        pipeline = container.with_workdir(root)
-
-    return (
-        pipeline.
-        with_exec(["./pants", Actions.RUN, target] + processed_options)
+    return _exec(
+        container, Actions.RUN, target=target, root=root,
+        args=args, cleanup=cleanup, debug_adapter=debug_adapter
     )
 
 
 def test(
-    container: Container, target: str = "::", test_debug: bool = None,
-    test_debug_adapter: bool = None, test_force: bool = None,
-    test_output: TestOuput = None, test_use_coverage: bool = None,
-    test_open_coverage: bool = None, test_extra_env_vars: dict = None,
-    test_shard: str = None, test_timeouts: bool = None, root: str = None
+    container: Container, target: str = "::", debug: bool = None,
+    debug_adapter: bool = None, force: bool = None,
+    output: TestOuput = None, use_coverage: bool = None,
+    open_coverage: bool = None, extra_env_vars: dict = None,
+    shard: str = None, test_timeouts: bool = None, root: str = None
 ) -> Container:
-    arguments = locals()
     options = {
-        "--test-extra-env-vars": [f"{k}={v}" for k, v in test_extra_env_vars.items()]
+        "--test-extra-env-vars": [f"{k}={v}" for k, v in extra_env_vars.items()]
     }
 
-    method_name = get_method_name()
-    processed_options = parse_options(
-        arguments, options, options_reflection, method_name
-    )
-
-    log.info(
-        "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=method_name,
-        action=method_name, options=processed_options,
-    )
-
-    pipeline = container
-    if root is not None:
-        pipeline = container.with_workdir(root)
-
-    return (
-        pipeline.
-        with_exec(["./pants", Actions.TEST, target] + processed_options)
+    return _exec(
+        container, Actions.TEST, target=target, options=options, root=root,
+        debug=debug, debug_adapter=debug_adapter, force=force, output=output,
+        use_coverage=use_coverage, open_coverage=open_coverage, extra_env_vars=extra_env_vars,
+        shard=shard, test_timeouts=test_timeouts
     )
 
 
 def check(
     container: Container, target: str = "::", only: list[str] = None, root: str = None
 ) -> Container:
-    arguments = locals()
-    options = {}
-    method_name = get_method_name()
-    processed_options = parse_options(
-        arguments, options, options_reflection, method_name
-    )
-
-    log.info(
-        "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=method_name,
-        action=method_name, options=processed_options,
-    )
-
-    pipeline = container
-    if root is not None:
-        pipeline = container.with_workdir(root)
-
-    return (
-        pipeline.
-        with_exec(["./pants", Actions.CHECK, target] + processed_options)
-    )
+    return _exec(container, Actions.FORMAT, target=target, root=root, only=only)

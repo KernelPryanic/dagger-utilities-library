@@ -68,7 +68,8 @@ def get_method_name(level=1):
 
 
 def parse_options(
-    arguments, options, options_reflection: dict[str, str], method_name: str
+    arguments, options: dict,
+    options_reflection: dict[str, str], method_name: str
 ) -> list:
     for k, v in arguments.items():
         if v is not None:
