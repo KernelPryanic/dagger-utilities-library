@@ -12,7 +12,7 @@ from .generic import get_job_name, get_method_name, get_module_name
 log = structlog.get_logger()
 
 
-class CurlActions(Enum):
+class Actions(Enum):
     GET = "GET"
     POST = "POST"
     PUT = "PUT"
@@ -21,7 +21,7 @@ class CurlActions(Enum):
 
 
 def _exec(
-    container: Container, action: CurlActions, url: str,
+    container: Container, action: Actions, url: str,
     headers: dict = None, payload: dict = None,
     output: str = None, root: str = None
 ) -> Container:
@@ -47,10 +47,10 @@ def _exec(
     return (
         pipeline.
         with_exec(
-            ["curl", "-X", action, url] +
+            ["curl", "-L", "-X", action, url] +
             list(itertools.chain([("-X", f"{k}: {v}") for k, v in headers.items()])) +
             (["-d", json.dumps(payload)] if payload is not None else []) +
-            ([output] if output is not None else [])
+            (["-o", output] if output is not None else [])
         )
     )
 
@@ -59,32 +59,32 @@ def get(
     container: Container, url: str,
     headers: dict = None, output: str = None, root: str = None
 ) -> Container:
-    return _exec(container, CurlActions.GET, url=url, headers=headers, output=output, root=root)
+    return _exec(container, Actions.GET, url=url, headers=headers, output=output, root=root)
 
 
 def post(
     container: Container, url: str,
     headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, CurlActions.POST, url=url, headers=headers, payload=payload, root=root)
+    return _exec(container, Actions.POST, url=url, headers=headers, payload=payload, root=root)
 
 
 def put(
     container: Container, url: str,
     headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, CurlActions.PUT, url=url, headers=headers, payload=payload, root=root)
+    return _exec(container, Actions.PUT, url=url, headers=headers, payload=payload, root=root)
 
 
 def patch(
     container: Container, url: str,
     headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, CurlActions.PATCH, url=url, headers=headers, payload=payload, root=root)
+    return _exec(container, Actions.PATCH, url=url, headers=headers, payload=payload, root=root)
 
 
 def delete(
     container: Container, url: str,
     headers: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, CurlActions.DELETE, url=url, headers=headers, root=root)
+    return _exec(container, Actions.DELETE, url=url, headers=headers, root=root)
