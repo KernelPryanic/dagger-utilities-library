@@ -6,6 +6,7 @@ from dagger.api.gen import Container
 from dul.scripts.common.structlogging import *
 
 from . import curl
+from .arguments import Schema
 from .generic import (get_job_name, get_method_name, get_module_name,
                       parse_options)
 
@@ -58,6 +59,8 @@ class TestOuput(Enum):
     FAILED = "failed"
     NONE = "none"
 
+
+schema = Schema()
 
 options_reflection = {
     "format": {

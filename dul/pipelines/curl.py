@@ -23,6 +23,7 @@ class Actions(Enum):
 def _exec(
     container: Container, action: Actions, url: str,
     headers: dict = None, payload: dict = None,
+    silent: bool = None, show_error: bool = None,
     output: str = None, root: str = None
 ) -> Container:
     if len(url) == 0:
@@ -50,41 +51,63 @@ def _exec(
             ["curl", "-L", "-X", action, url] +
             list(itertools.chain([("-X", f"{k}: {v}") for k, v in headers.items()])) +
             (["-d", json.dumps(payload)] if payload is not None else []) +
-            (["-o", output] if output is not None else [])
+            (["-o", output] if output is not None else []) +
+            (["-s"] if silent else []) +
+            (["-S"] if show_error else [])
         )
     )
 
 
 def get(
     container: Container, url: str,
+    silent: bool = False, show_error: bool = False,
     headers: dict = None, output: str = None, root: str = None
 ) -> Container:
-    return _exec(container, Actions.GET, url=url, headers=headers, output=output, root=root)
+    return _exec(
+        container, Actions.GET, url=url, silent=silent, show_error=show_error,
+        headers=headers, output=output, root=root
+    )
 
 
 def post(
     container: Container, url: str,
+    silent: bool = False, show_error: bool = False,
     headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, Actions.POST, url=url, headers=headers, payload=payload, root=root)
+    return _exec(
+        container, Actions.POST, url=url, silent=silent, show_error=show_error,
+        headers=headers, payload=payload, root=root
+    )
 
 
 def put(
     container: Container, url: str,
+    silent: bool = False, show_error: bool = False,
     headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, Actions.PUT, url=url, headers=headers, payload=payload, root=root)
+    return _exec(
+        container, Actions.PUT, url=url, silent=silent, show_error=show_error,
+        headers=headers, payload=payload, root=root
+    )
 
 
 def patch(
     container: Container, url: str,
+    silent: bool = False, show_error: bool = False,
     headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, Actions.PATCH, url=url, headers=headers, payload=payload, root=root)
+    return _exec(
+        container, Actions.PATCH, url=url, silent=silent, show_error=show_error,
+        headers=headers, payload=payload, root=root
+    )
 
 
 def delete(
     container: Container, url: str,
+    silent: bool = False, show_error: bool = False,
     headers: dict = None, root: str = None
 ) -> Container:
-    return _exec(container, Actions.DELETE, url=url, headers=headers, root=root)
+    return _exec(
+        container, Actions.DELETE, url=url, silent=silent, show_error=show_error,
+        headers=headers, root=root
+    )
