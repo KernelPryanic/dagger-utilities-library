@@ -6,9 +6,8 @@ from dagger.api.gen import Container
 from dul.scripts.common.structlogging import *
 
 from . import curl
-from .arguments import Schema
-from .generic import (get_job_name, get_method_name, get_module_name,
-                      parse_options)
+from .cli_helpers import Once, Repeat, Schema
+from .generic import get_job_name, get_method_name, get_module_name
 
 log = structlog.get_logger()
 
@@ -60,34 +59,42 @@ class TestOuput(Enum):
     NONE = "none"
 
 
-schema = Schema()
-
-options_reflection = {
-    "format": {
-        "only": "--only"
-    },
-    "lint": {
-        "only": "--only",
-        "skip_formatters": "--skip-formatters"
-    },
-    "run": {
-        "args": "--args",
-        "cleanup": "--cleanup",
-        "debug_adapter": "--debug-adapter"
-    },
-    "test": {
-        "debug": "--debug",
-        "debug_adapter": "--debug-adapter",
-        "force": "--force",
-        "output": "--output",
-        "use_coverage": "--use-coverage",
-        "open_coverage": "--open-coverage",
-        "shard": "--shard",
-        "timeouts": "--timeouts"
-    },
-    "check": {
-        "only": "--only"
-    }
+argument_schemas = {
+    "format": Schema(
+        {
+            "only": Repeat("--only")
+        }
+    ),
+    "lint": Schema(
+        {
+            "only": Repeat("--only"),
+            "skip_formatters": Once("--skip-formatters")
+        }
+    ),
+    "run": Schema(
+        {
+            "args": Once("--args"),
+            "cleanup": Once("--cleanup"),
+            "debug_adapter": Once("--debug-adapter")
+        }
+    ),
+    "test": Schema(
+        {
+            "debug": Once("--debug"),
+            "debug_adapter": Once("--debug-adapter"),
+            "force": Once("--force"),
+            "output": Once("--output"),
+            "use_coverage": Once("--use-coverage"),
+            "open_coverage": Once("--open-coverage"),
+            "shard": Once("--shard"),
+            "timeouts": Once("--timeouts")
+        }
+    ),
+    "check": Schema(
+        {
+            "only": Repeat("--only")
+        }
+    )
 }
 
 
@@ -110,19 +117,17 @@ def install(container: Container, root: str = None) -> Container:
 
 
 def _exec(
-    container: Container, action: Actions, target: str = "::", options: dict = {},
-    root: str = None, *args, **kwargs
+    container: Container, action: Actions, target: str = "::",
+    extra_args: list = [], root: str = None, *args, **kwargs
 ) -> Container:
-    arguments = locals()
+    parameters = locals()
     method_name = get_method_name(2)
-    processed_options = parse_options(
-        arguments, options, options_reflection, method_name
-    )
+    arguments = argument_schemas[method_name].process(parameters) + extra_args
 
     log.info(
         "Initializing module", job=get_job_name(3),
         module=get_module_name(2), method=method_name,
-        options=processed_options
+        arguments=arguments
     )
 
     pipeline = container
@@ -131,7 +136,7 @@ def _exec(
 
     return (
         pipeline.
-        with_exec(["./pants", action.value, target] + processed_options)
+        with_exec(["./pants", action.value, target] + arguments)
     )
 
 
@@ -176,12 +181,13 @@ def test(
     open_coverage: bool = None, extra_env_vars: dict = None,
     shard: str = None, test_timeouts: bool = None, root: str = None
 ) -> Container:
-    options = {
-        "--test-extra-env-vars": [f"{k}={v}" for k, v in extra_env_vars.items()]
-    }
+    extra_args = [
+        "--test-extra-env-vars",
+        *[f"{k}={v}" for k, v in extra_env_vars.items()]
+    ]
 
     return _exec(
-        container, Actions.TEST, target=target, options=options, root=root,
+        container, Actions.TEST, target=target, extra_args=extra_args, root=root,
         debug=debug, debug_adapter=debug_adapter, force=force, output=output,
         use_coverage=use_coverage, open_coverage=open_coverage, extra_env_vars=extra_env_vars,
         shard=shard, test_timeouts=test_timeouts

@@ -5,8 +5,8 @@ from dagger.api.gen import Container
 from dul.scripts.common.structlogging import *
 
 from . import curl
-from .generic import (get_job_name, get_method_name, get_module_name,
-                      parse_options)
+from .cli_helpers import Flag, Once, Schema
+from .generic import get_job_name, get_method_name, get_module_name
 
 log = structlog.get_logger()
 
@@ -26,24 +26,26 @@ class LockfileModes(Enum):
     READONLY = "readonly"
 
 
-options_reflection = {
-    "init": {
-        "backend": "-backend",
-        "backend_config": "-backend-config",
-        "force_copy": "-force-copy",
-        "from_module": "-from-module",
-        "get": "-get",
-        "input": "-input",
-        "lock": "-lock",
-        "lock_timeout": "-lock-timeout",
-        "no_color": "-no-color",
-        "plugin_dir": "-plugin-dir",
-        "reconfigure": "-reconfigure",
-        "migrate_state": "-migrate-state",
-        "upgrade": "-upgrade",
-        "lockfile": "-lockfile",
-        "ignore_remote_version": "-ignore-remote-version"
-    }
+argument_schemas = {
+    "init": Schema(
+        {
+            "backend": Once("-backend"),
+            "backend_config": Once("-backend-config"),
+            "force_copy": Flag("-force-copy"),
+            "from_module": Once("-from-module"),
+            "get": Once("-get"),
+            "input": Once("-input"),
+            "lock": Once("-lock"),
+            "lock_timeout": Once("-lock-timeout"),
+            "no_color": Flag("-no-color"),
+            "plugin_dir": Flag("-plugin-dir"),
+            "reconfigure": Flag("-reconfigure"),
+            "migrate_state": Flag("-migrate-state"),
+            "upgrade": Flag("-upgrade"),
+            "lockfile": Once("-lockfile"),
+            "ignore_remote_version": Flag("-ignore-remote-version")
+        }
+    )
 }
 
 
@@ -61,19 +63,17 @@ def install(container: Container, version: str):
 
 
 def _exec(
-    container: Container, action: Actions, options: dict = {},
-    root: str = None, *args, **kwargs
+    container: Container, action: Actions, extra_args: list = [],
+    root: str = None,  *args, **kwargs
 ) -> Container:
-    arguments = locals()
+    parameters = locals()
     method_name = get_method_name(2)
-    processed_options = parse_options(
-        arguments, options, options_reflection, method_name
-    )
+    arguments = argument_schemas[method_name].process(parameters) + extra_args
 
     log.info(
         "Initializing module", job=get_job_name(3),
         module=get_module_name(2), method=method_name,
-        options=processed_options
+        options=arguments
     )
 
     pipeline = container
@@ -82,7 +82,7 @@ def _exec(
 
     return (
         pipeline.
-        with_exec(["terraform", action.value] + processed_options)
+        with_exec(["terraform", action.value] + arguments)
     )
 
 
@@ -95,7 +95,7 @@ def init(
     lockfile: LockfileModes = None, ignore_remote_version: bool = None,
     root: str = None
 ) -> Container:
-    pass
+    return _exec(container, Actions.INIT, root=root)
 
 
 def format(container: Container, recursive: bool = None, root: str = None) -> Container:
