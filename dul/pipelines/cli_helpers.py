@@ -1,6 +1,10 @@
 class Argument:
-    def __init__(self, value) -> None:
-        self.value = value
+    def __init__(
+        self, name,
+        format: callable = lambda name, value: [name, value]
+    ) -> None:
+        self.name = name
+        self.format = format
 
 
 class Flag(Argument):
@@ -12,10 +16,6 @@ class Once(Argument):
 
 
 class Repeat(Argument):
-    pass
-
-
-class List(Argument):
     pass
 
 
@@ -34,26 +34,25 @@ class Schema(dict):
         for var_name, var_value in variables.items():
             if var_value is not None:
                 arg: Argument = self.get(var_name)
-                arg_name = arg.value
+                arg_name = arg.name
+                arg_format: callable = arg.format
                 arg_val = getattr(var_value, "value", var_value)
                 match type(arg):
                     case Flag():
                         args.append(arg_name)
                     case Once():
                         v = getattr(arg_val, "value", arg_val)
-                        args.extend([arg_name, v])
+                        args.extend([arg_name, arg_format(v)])
                     case Repeat():
-                        for item in arg_val:
-                            v = getattr(item, "value", item)
-                            args.extend([arg_name, v])
-                    case List():
-                        args.append(arg_name)
-                        lst = "["
-                        for item in arg_val:
-                            v = getattr(item, "value", item)
-                            lst += f"{v},"
-                        lst = lst[:len(lst)-1] + "]"
-                        args.append(lst)
+                        match type(arg_val):
+                            case list():
+                                for item in arg_val:
+                                    v = getattr(item, "value", item)
+                                    args.extend([arg_name, arg_format(v)])
+                            case dict():
+                                for k, v in arg_val.items():
+                                    v = getattr(item, "value", item)
+                                    args.extend([arg_name, arg_format(k, v)])
                     case None:
                         pass
 
