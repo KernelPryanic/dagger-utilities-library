@@ -7,6 +7,7 @@ from dagger.api.gen import Container
 
 from dul.scripts.common.structlogging import *
 
+from .cli_helpers import Flag, Once, Positional, Repeat, Schema
 from .generic import get_job_name, get_method_name, get_module_name
 
 log = structlog.get_logger()
@@ -20,23 +21,46 @@ class Actions(Enum):
     DELETE = "DELETE"
 
 
+argument_schemas = {
+    "_exec": Schema(
+        {
+            "url": Positional(),
+            "headers": Repeat("-H", lambda name, k, v: [name, f"{k}: {v}"]),
+            "payload": Once("-d", lambda name, v: [name, json.dumps(v)]),
+            "redirect": Flag("-L"),
+            "silent": Flag("-s"),
+            "show_error": Flag("-S"),
+            "output": Once("-o")
+        }
+    ),
+    "get": Schema(),
+    "post": Schema(),
+    "put": Schema(),
+    "patch": Schema(),
+    "delete": Schema(),
+}
+
+
 def _exec(
     container: Container, action: Actions, url: str,
     headers: dict = None, payload: dict = None,
-    silent: bool = None, show_error: bool = None,
-    output: str = None, root: str = None
+    redirect: bool = None, silent: bool = None, show_error: bool = None,
+    output: str = None, extra_args: list = [], root: str = None
 ) -> Container:
     if len(url) == 0:
         log.warning(
             "URL is not defined", job=get_job_name(),
             module=get_module_name(), url=url, headers=headers,
-            payload=payload, output=output
+            payload=payload
         )
         return container
 
-    pipeline = container
-    if root is not None:
-        pipeline = container.with_workdir(root)
+    parameters = locals()
+    method_name = get_method_name(2)
+    arguments = []
+    exec_arguments += argument_schemas[get_method_name()].process(parameters)
+    arguments += argument_schemas[method_name].process(parameters)
+    arguments += extra_args
 
     log.info(
         "Initializing module", job=get_job_name(3),
@@ -45,15 +69,14 @@ def _exec(
         root=root
     )
 
+    pipeline = container
+    if root is not None:
+        pipeline = container.with_workdir(root)
+
     return (
         pipeline.
         with_exec(
-            ["curl", "-L", "-X", action, url] +
-            list(itertools.chain([("-X", f"{k}: {v}") for k, v in headers.items()])) +
-            (["-d", json.dumps(payload)] if payload is not None else []) +
-            (["-o", output] if output is not None else []) +
-            (["-s"] if silent else []) +
-            (["-S"] if show_error else [])
+            ["curl", action.value] + exec_arguments + arguments
         )
     )
 
@@ -75,8 +98,7 @@ def post(
     headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
     return _exec(
-        container, Actions.POST, url=url, silent=silent, show_error=show_error,
-        headers=headers, payload=payload, root=root
+        container, Actions.POST, locals()
     )
 
 
@@ -86,8 +108,7 @@ def put(
     headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
     return _exec(
-        container, Actions.PUT, url=url, silent=silent, show_error=show_error,
-        headers=headers, payload=payload, root=root
+        container, Actions.PUT, locals()
     )
 
 
@@ -97,8 +118,7 @@ def patch(
     headers: dict = None, payload: dict = None, root: str = None
 ) -> Container:
     return _exec(
-        container, Actions.PATCH, url=url, silent=silent, show_error=show_error,
-        headers=headers, payload=payload, root=root
+        container, Actions.PATCH, locals()
     )
 
 
@@ -108,6 +128,5 @@ def delete(
     headers: dict = None, root: str = None
 ) -> Container:
     return _exec(
-        container, Actions.DELETE, url=url, silent=silent, show_error=show_error,
-        headers=headers, root=root
+        container, Actions.DELETE, locals()
     )

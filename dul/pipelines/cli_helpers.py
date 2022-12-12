@@ -11,6 +11,10 @@ class Flag(Argument):
     pass
 
 
+class Positional(Argument):
+    pass
+
+
 class Once(Argument):
     pass
 
@@ -38,6 +42,9 @@ class Schema(dict):
                 match type(arg):
                     case Flag():
                         args.append(arg.name)
+                    case Positional():
+                        v = getattr(arg_val, "value", arg_val)
+                        args.append(v)
                     case Once():
                         v = getattr(arg_val, "value", arg_val)
                         args.extend(arg.format(arg.name, v))
