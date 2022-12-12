@@ -34,25 +34,23 @@ class Schema(dict):
         for var_name, var_value in variables.items():
             if var_value is not None:
                 arg: Argument = self.get(var_name)
-                arg_name = arg.name
-                arg_format: callable = arg.format
                 arg_val = getattr(var_value, "value", var_value)
                 match type(arg):
                     case Flag():
-                        args.append(arg_name)
+                        args.append(arg.name)
                     case Once():
                         v = getattr(arg_val, "value", arg_val)
-                        args.extend([arg_name, arg_format(v)])
+                        args.extend(arg.format(arg.name, v))
                     case Repeat():
                         match type(arg_val):
                             case list():
                                 for item in arg_val:
                                     v = getattr(item, "value", item)
-                                    args.extend([arg_name, arg_format(v)])
+                                    args.extend(arg.format(arg.name, v))
                             case dict():
                                 for k, v in arg_val.items():
                                     v = getattr(item, "value", item)
-                                    args.extend([arg_name, arg_format(k, v)])
+                                    args.extend(arg.format(arg.name, v))
                     case None:
                         pass
 
