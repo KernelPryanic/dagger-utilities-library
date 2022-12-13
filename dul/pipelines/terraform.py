@@ -23,7 +23,43 @@ class terraform(pipe):
         parameters = locals()
         self.schema = Schema(
             {
-                "no_color": Flag(flag("-no-color"))
+                "no_color": Flag(flag("-no-color")),
+                "backend": Once(once("-backend")),
+                "backend_config": Once(once("-backend-config")),
+                "force_copy": Flag(flag("-force-copy")),
+                "from_module": Once(once("-from-module")),
+                "get": Once(once("-get")),
+                "input": Once(once("-input")),
+                "lock": Once(once("-lock")),
+                "lock_timeout": Once(once("-lock-timeout")),
+                "plugin_dir": Flag(flag("-plugin-dir")),
+                "reconfigure": Flag(flag("-reconfigure")),
+                "migrate_state": Flag(flag("-migrate-state")),
+                "upgrade": Flag(flag("-upgrade")),
+                "lockfile": Once(once("-lockfile")),
+                "ignore_remote_version": Flag(flag("-ignore-remote-version")),
+                "destroy": Flag(flag("-destroy")),
+                "refresh_only": Flag(flag("-refresh-only")),
+                "refresh": Once(once("-refresh")),
+                "replace": Once(once("-replace")),
+                "target": Once(once("-target")),
+                "vars": Repeat(lambda k, v: ["-var", f"{k}={v}"]),
+                "var_file": Once(once("-var-file")),
+                "compact_warnings": Flag(flag("-compact-warnings")),
+                "detailed_exitcode": Flag(flag("-detailed-exitcode")),
+                "lock": Once(once("-lock")),
+                "out": Once(once("-out")),
+                "parallelism": Once(once("-parallelism")),
+                "state": Once(once("-state")),
+                "json": Flag(flag("-json")),
+                "auto_approve": Flag(flag("-auto-approve")),
+                "backup": Once(once("-backup")),
+                "state_out": Once(once("-state-out")),
+                "list": Once(once("-list")),
+                "write": Once(once("-write")),
+                "diff": Flag(flag("-diff")),
+                "check": Flag(flag("-check")),
+                "recursive": Flag(flag("-recursive"))
             }
         )
         schema = Schema(
@@ -47,37 +83,14 @@ class terraform(pipe):
         extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        schema = self.schema | Schema(
-            {
-                "backend": Once(once("-backend")),
-                "backend_config": Once(once("-backend-config")),
-                "force_copy": Flag(flag("-force-copy")),
-                "from_module": Once(once("-from-module")),
-                "get": Once(once("-get")),
-                "input": Once(once("-input")),
-                "lock": Once(once("-lock")),
-                "lock_timeout": Once(once("-lock-timeout")),
-                "plugin_dir": Flag(flag("-plugin-dir")),
-                "reconfigure": Flag(flag("-reconfigure")),
-                "migrate_state": Flag(flag("-migrate-state")),
-                "upgrade": Flag(flag("-upgrade")),
-                "lockfile": Once(once("-lockfile")),
-                "ignore_remote_version": Flag(flag("-ignore-remote-version"))
-            }
-        )
-        self.cli += ["init"] + schema.process(parameters) + extra_args
+        self.cli += ["init"] + self.schema.process(parameters) + extra_args
         return self
 
     def validate(
         self, json: bool = None, no_color: bool = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        schema = self.schema | Schema(
-            {
-                "json": Flag(flag("-json"))
-            }
-        )
-        self.cli += ["validate"] + schema.process(parameters) + extra_args
+        self.cli += ["validate"] + self.schema.process(parameters) + extra_args
         return self
 
     def plan(
@@ -89,26 +102,7 @@ class terraform(pipe):
         parallelism: int = None, state: str = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        schema = self.schema | Schema(
-            {
-                "destroy": Flag(flag("-destroy")),
-                "refresh_only": Flag(flag("-refresh-only")),
-                "refresh": Once(once("-refresh")),
-                "replace": Once(once("-replace")),
-                "target": Once(once("-target")),
-                "vars": Repeat(lambda k, v: ["-var", f"{k}={v}"]),
-                "var_file": Once(once("-var-file")),
-                "compact_warnings": Flag(flag("-compact-warnings")),
-                "detailed_exitcode": Flag(flag("-detailed-exitcode")),
-                "input": Once(once("-input")),
-                "lock": Once(once("-lock")),
-                "lock_timeout": Once(once("-lock-timeout")),
-                "out": Once(once("-out")),
-                "parallelism": Once(once("-parallelism")),
-                "state": Once(once("-state"))
-            }
-        )
-        self.cli += ["plan"] + schema.process(parameters) + extra_args
+        self.cli += ["plan"] + self.schema.process(parameters) + extra_args
         return self
 
     def apply(
@@ -119,21 +113,7 @@ class terraform(pipe):
         extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        schema = self.schema | Schema(
-            {
-                "auto_approve": Flag(flag("-auto-approve")),
-                "backup": Once(once("-backup")),
-                "compact_warnings": Flag(flag("-compact-warnings")),
-                "destroy": Flag(flag("-destroy")),
-                "lock": Once(once("-lock")),
-                "lock_timeout": Once(once("-lock-timeout")),
-                "input": Once(once("-input")),
-                "parallelism": Once(once("-parallelism")),
-                "state": Once(once("-state")),
-                "state_out": Once(once("-state-out"))
-            }
-        )
-        self.cli += ["apply"] + schema.process(parameters) + extra_args
+        self.cli += ["apply"] + self.schema.process(parameters) + extra_args
         return self
 
     def destroy(
@@ -144,20 +124,7 @@ class terraform(pipe):
         extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        schema = self.schema | Schema(
-            {
-                "auto_approve": Flag(flag("-auto-approve")),
-                "backup": Once(once("-backup")),
-                "compact_warnings": Flag(flag("-compact-warnings")),
-                "lock": Once(once("-lock")),
-                "lock_timeout": Once(once("-lock-timeout")),
-                "input": Once(once("-input")),
-                "parallelism": Once(once("-parallelism")),
-                "state": Once(once("-state")),
-                "state_out": Once(once("-state-out"))
-            }
-        )
-        self.cli += ["destroy"] + schema.process(parameters) + extra_args
+        self.cli += ["destroy"] + self.schema.process(parameters) + extra_args
         return self
 
     def format(
@@ -166,32 +133,24 @@ class terraform(pipe):
         recursive: bool = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        schema = self.schema | Schema(
-            {
-                "list": Once(once("-list")),
-                "write": Once(once("-write")),
-                "diff": Flag(flag("-diff")),
-                "check": Flag(flag("-check")),
-                "recursive": Flag(flag("-recursive"))
-            }
-        )
-        self.cli += ["format"] + schema.process(parameters) + extra_args
+        self.cli += ["format"] + self.schema.process(parameters) + extra_args
         return self
 
     def show(
         self, json: bool = None, no_color: bool = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        schema = self.schema | Schema(
-            {
-                "json": Flag(flag("-json"))
-            }
-        )
-        self.cli += ["show"] + schema.process(parameters) + extra_args
+        self.cli += ["show"] + self.schema.process(parameters) + extra_args
         return self
 
     class _workspace(pipe):
         def __init__(self, cli: list = [], extra_args: list = []) -> pipe:
+            self.schema = {
+                "force": Flag(flag("-force")),
+                "lock": Once(once("-lock")),
+                "lock_timeout": Once(once("-lock-timeout")),
+                "state": Once(once("-state"))
+            }
             self.cli = cli + ["workspace"] + extra_args
 
         def delete(
@@ -199,14 +158,8 @@ class terraform(pipe):
             lock_timeout: str = None, extra_args: list = []
         ) -> pipe:
             parameters = locals()
-            schema = self.schema | Schema(
-                {
-                    "force": Flag(flag("-force")),
-                    "lock": Once(once("-lock")),
-                    "lock_timeout": Once(once("-lock-timeout"))
-                }
-            )
-            self.cli += ["delete"] + schema.process(parameters) + extra_args
+            self.cli += ["delete"] + \
+                self.schema.process(parameters) + extra_args
             return self
 
         def list(self, extra_args: list = []) -> pipe:
@@ -215,14 +168,7 @@ class terraform(pipe):
 
         def new(self, extra_args: list = []) -> pipe:
             parameters = locals()
-            schema = self.schema | Schema(
-                {
-                    "lock": Once(once("-lock")),
-                    "lock_timeout": Once(once("-lock-timeout")),
-                    "state": Once(once("-state"))
-                }
-            )
-            self.cli += ["new"] + schema.process(parameters) + extra_args
+            self.cli += ["new"] + self.schema.process(parameters) + extra_args
             return self
 
         def select(self, extra_args: list = []) -> pipe:

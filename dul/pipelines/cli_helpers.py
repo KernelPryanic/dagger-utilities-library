@@ -67,7 +67,7 @@ class Schema(dict):
 
 class pipe():
     def __init__(self):
-        self.cli_schema: dict
+        self.schema: dict
         self.cli: list
 
     def __call__(
@@ -81,6 +81,3 @@ class pipe():
             pipeline.
             with_exec(self.cli)
         )
-
-    def _process_parameters(self, schema: Schema, extra_args: list = [], *args, **kwargs):
-        self.cli += schema.process(locals()) + extra_args
