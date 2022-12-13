@@ -1,48 +1,56 @@
-from enum import Enum
-
 import structlog
-from dagger.api.gen import Container
 
 from dul.scripts.common.structlogging import *
 
-from .generic import get_job_name, get_method_name, get_module_name
+from ..common.dul_exception import DULException
+from .cli_helpers import Flag, Repeat, Schema, pipe
+from .generic import get_job_name, get_method_name
 
 log = structlog.get_logger()
 
 
-class Actions(Enum):
-    INSTALL = "add"
-    UNINSTALL = "delete"
+def flag(name): return lambda: [name]
 
 
-def _exec(container: Container, action: Actions, *packages: str) -> Container:
-    if len(packages) == 0:
-        log.warning(
-            "No packages passed",
-            job=get_job_name(3),
-            module=get_module_name(2),
-            method=get_method_name(2)
+class apk(pipe):
+    def __init__(
+        self, force: bool = None, quite: bool = None,
+        update: bool = None, no_cache: bool = None, extra_args: list = []
+    ):
+        parameters = locals()
+        self.schema = Schema(
+            {
+                "packages": Repeat(lambda v: [v])
+            }
         )
-        return container
-
-    log.info(
-        "Initializing module", job=get_job_name(3),
-        module=get_module_name(2), method=get_method_name(2), packages=packages
-    )
-
-    return (
-        container.
-        with_exec(
-            ["apk", action.value] + (
-                ["--update", "--no-cache"] if action.value == Actions.INSTALL else []
-            ) + list(packages)
+        schema = Schema(
+            {
+                "force": Flag(flag("-f")),
+                "quite": Flag(flag("-q")),
+                "update": Flag(flag("-U")),
+                "no_cache": Flag(flag("--no-cache"))
+            }
         )
-    )
 
+        self.cli = ["apk"] + schema.process(parameters) + extra_args
 
-def install(container: Container, packages: list[str]) -> Container:
-    return _exec(container, Actions.INSTALL, *packages)
+    def __common__(
+        self, packages: list[str], *args, **kwargs
+    ):
+        if len(packages) == 0:
+            msg = "No packages passed to the module"
+            log.error(
+                msg, job=get_job_name(3), module=self.__class__.__name__,
+                method=get_method_name(2)
+            )
+            raise DULException(msg)
 
+    def install(self, packages: list[str], extra_args: list = []) -> pipe:
+        self.__common__(locals())
+        self.cli += ["add"] + self.schema.process(locals()) + extra_args
+        return self
 
-def uninstall(container: Container, packages: list[str]) -> Container:
-    return _exec(container, Actions.UNINSTALL, *packages)
+    def uninstall(self, packages: list[str], extra_args: list = []) -> pipe:
+        self.__common__(locals())
+        self.cli += ["del"] + self.schema.process(locals()) + extra_args
+        return self

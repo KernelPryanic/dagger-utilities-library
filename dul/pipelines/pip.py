@@ -1,46 +1,43 @@
-from enum import Enum
-
 import structlog
-from dagger.api.gen import Container
 
 from dul.scripts.common.structlogging import *
 
-from .generic import get_job_name, get_method_name, get_module_name
+from ..common.dul_exception import DULException
+from .cli_helpers import Flag, Repeat, Schema, pipe
+from .generic import get_job_name, get_method_name
 
 log = structlog.get_logger()
 
 
-class Actions(Enum):
-    INSTALL = "install"
-    UNINSTALL = "uninstall"
-
-
-def _exec(
-    container: Container, action: Actions, *packages: str
-) -> Container:
-    method_name = get_method_name(2)
-    if len(packages) == 0:
-        log.warning(
-            "No packages passed to the module", job=get_job_name(3),
-            module=get_module_name(2), method=method_name
+class pip(pipe):
+    def __init__(
+        self, extra_args: list = []
+    ):
+        self.schema = Schema(
+            {
+                "packages": Repeat(lambda v: [v])
+            }
         )
-        return container
 
-    log.info(
-        "Initializing module", job=get_job_name(),
-        module=get_module_name(), action=action.name,
-        packages=packages
-    )
+        self.cli = ["pip"] + extra_args
 
-    return (
-        container.
-        with_exec(["pip", action.value] + list(packages))
-    )
+    def __common__(
+        self, packages: list[str], *args, **kwargs
+    ):
+        if len(packages) == 0:
+            msg = "No packages passed to the module"
+            log.error(
+                msg, job=get_job_name(3), module=self.__class__.__name__,
+                method=get_method_name(2)
+            )
+            raise DULException(msg)
 
+    def install(self, packages: list[str], extra_args: list = []) -> pipe:
+        self.__common__(locals())
+        self.cli += ["install"] + self.schema.process(locals()) + extra_args
+        return self
 
-def install(container: Container, packages: list[str]) -> Container:
-    return _exec(container, Actions.INSTALL, *packages)
-
-
-def install(container: Container, packages: list[str]) -> Container:
-    return _exec(container, Actions.UNINSTALL, *packages)
+    def uninstall(self, packages: list[str], extra_args: list = []) -> pipe:
+        self.__common__(locals())
+        self.cli += ["uninstall"] + self.schema.process(locals()) + extra_args
+        return self

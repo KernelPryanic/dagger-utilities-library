@@ -16,9 +16,8 @@ def flag(name): return lambda: [name]
 class curl(pipe):
     def __init__(
         self, redirect: bool = None, silent: bool = None,
-        show_error: bool = None, output: str = None,
-        extra_args: list = []
-    ):
+        show_error: bool = None, output: str = None, extra_args: list = []
+    ) -> pipe:
         parameters = locals()
         self.schema = Schema(
             {
@@ -40,7 +39,7 @@ class curl(pipe):
     def __common__(
         self, url: str, headers: dict = None, payload: dict = None,
         *args, **kwargs
-    ) -> list:
+    ):
         if len(url) == 0:
             msg = "URL is not defined"
             log.error(
@@ -50,45 +49,35 @@ class curl(pipe):
             )
             raise DULException(msg)
 
-        log.info(
-            "Initializing", job=get_job_name(),
-            module=self.__class__.__name__, method=get_method_name(),
-            url=url, headers=headers, payload=payload
-        )
-
     def get(
         self, url: str, headers: dict = None, payload: dict = None,
         extra_args: list = []
-    ) -> list:
+    ) -> pipe:
         self.__common__(locals())
-
         self.cli += ["-X", "GET"] + self.schema.process(locals()) + extra_args
         return self
 
     def post(
         self, url: str, headers: dict = None, payload: dict = None,
         extra_args: list = []
-    ):
+    ) -> pipe:
         self.__common__(locals())
-
         self.cli += ["-X", "POST"] + self.schema.process(locals()) + extra_args
         return self
 
     def put(
         self, url: str, headers: dict = None, payload: dict = None,
         extra_args: list = []
-    ):
+    ) -> pipe:
         self.__common__(locals())
-
         self.cli += ["-X", "PUT"] + self.schema.process(locals()) + extra_args
         return self
 
     def patch(
         self, url: str, headers: dict = None, payload: dict = None,
         extra_args: list = []
-    ):
+    ) -> pipe:
         self.__common__(locals())
-
         self.cli += ["-X", "PATCH"] + \
             self.schema.process(locals()) + extra_args
         return self
@@ -96,9 +85,8 @@ class curl(pipe):
     def delete(
         self, url: str, headers: dict = None, payload: dict = None,
         extra_args: list = []
-    ):
+    ) -> pipe:
         self.__common__(locals())
-
         self.cli += ["-X", "DELETE"] + \
             self.schema.process(locals()) + extra_args
         return self
