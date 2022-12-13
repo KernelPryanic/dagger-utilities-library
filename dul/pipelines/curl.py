@@ -1,133 +1,104 @@
-import itertools
 import json
-from enum import Enum
 
 import structlog
-from dagger.api.gen import Container
 
-from dul.scripts.common.structlogging import *
-
-from .cli_helpers import Flag, Once, Positional, Repeat, Schema
-from .generic import get_job_name, get_method_name, get_module_name
+from ..common.dul_exception import DULException
+from ..scripts.common.structlogging import *
+from .cli_helpers import Flag, Once, Positional, Repeat, Schema, pipe
+from .generic import get_job_name, get_method_name
 
 log = structlog.get_logger()
-
-
-class Actions(Enum):
-    GET = "GET"
-    POST = "POST"
-    PUT = "PUT"
-    PATCH = "PATCH"
-    DELETE = "DELETE"
 
 
 def flag(name): return lambda: [name]
 
 
-argument_schemas = {
-    "_exec": Schema(
-        {
-            "url": Positional(lambda v: [f"{v}"]),
-            "headers": Repeat(lambda k, v: ["-H", f"{k}: {v}"]),
-            "payload": Once(lambda v: ["-d", json.dumps(v)]),
-            "redirect": Flag(flag("-L")),
-            "silent": Flag(flag("-s")),
-            "show_error": Flag(flag("-S")),
-            "output": Once(lambda v: ["-o", v])
-        }
-    ),
-    "get": Schema(),
-    "post": Schema(),
-    "put": Schema(),
-    "patch": Schema(),
-    "delete": Schema(),
-}
-
-
-def _exec(
-    container: Container, action: Actions, url: str,
-    headers: dict = None, payload: dict = None,
-    redirect: bool = None, silent: bool = None, show_error: bool = None,
-    output: str = None, extra_args: list = [], root: str = None
-) -> Container:
-    if len(url) == 0:
-        log.error(
-            "URL is not defined", job=get_job_name(3),
-            module=get_module_name(2), method=get_method_name(2),
-            url=url, headers=headers, payload=payload, root=root
+class curl(pipe):
+    def __init__(
+        self, redirect: bool = None, silent: bool = None,
+        show_error: bool = None, output: str = None,
+        extra_args: list = []
+    ):
+        parameters = locals()
+        self.schema = Schema(
+            {
+                "url": Positional(lambda v: [f"{v}"]),
+                "headers": Repeat(lambda k, v: ["-H", f"{k}: {v}"]),
+                "payload": Once(lambda v: ["-d", json.dumps(v)])
+            }
         )
-        return container
-
-    parameters = locals()
-    arguments = []
-    exec_arguments += argument_schemas[get_method_name()].process(parameters)
-    arguments += argument_schemas[get_method_name(2)].process(parameters)
-    arguments += extra_args
-
-    log.info(
-        "Initializing module", job=get_job_name(3),
-        module=get_module_name(2), method=get_method_name(2),
-        url=url, headers=headers, payload=payload, root=root
-    )
-
-    pipeline = container
-    if root is not None:
-        pipeline = container.with_workdir(root)
-
-    return (
-        pipeline.
-        with_exec(
-            ["curl", action.value] + exec_arguments + arguments
+        schema = Schema(
+            {
+                "redirect": Flag(flag("-L")),
+                "silent": Flag(flag("-s")),
+                "show_error": Flag(flag("-S")),
+                "output": Once(lambda v: ["-o", v])
+            }
         )
-    )
+        self.cli = ["curl"] + schema.process(parameters) + extra_args
 
+    def __common__(
+        self, url: str, headers: dict = None, payload: dict = None,
+        *args, **kwargs
+    ) -> list:
+        if len(url) == 0:
+            msg = "URL is not defined"
+            log.error(
+                msg, job=get_job_name(3),
+                module=self.__class__.__name__, method=get_method_name(2),
+                url=url, headers=headers, payload=payload
+            )
+            raise DULException(msg)
 
-def get(
-    container: Container, url: str,
-    silent: bool = False, show_error: bool = False,
-    headers: dict = None, output: str = None, root: str = None
-) -> Container:
-    return _exec(
-        container, Actions.GET, url=url, silent=silent, show_error=show_error,
-        headers=headers, output=output, root=root
-    )
+        log.info(
+            "Initializing", job=get_job_name(),
+            module=self.__class__.__name__, method=get_method_name(),
+            url=url, headers=headers, payload=payload
+        )
 
+    def get(
+        self, url: str, headers: dict = None, payload: dict = None,
+        extra_args: list = []
+    ) -> list:
+        self.__common__(locals())
 
-def post(
-    container: Container, url: str,
-    silent: bool = False, show_error: bool = False,
-    headers: dict = None, payload: dict = None, root: str = None
-) -> Container:
-    return _exec(
-        container, Actions.POST, locals()
-    )
+        self.cli += ["-X", "GET"] + self.schema.process(locals()) + extra_args
+        return self
 
+    def post(
+        self, url: str, headers: dict = None, payload: dict = None,
+        extra_args: list = []
+    ):
+        self.__common__(locals())
 
-def put(
-    container: Container, url: str,
-    silent: bool = False, show_error: bool = False,
-    headers: dict = None, payload: dict = None, root: str = None
-) -> Container:
-    return _exec(
-        container, Actions.PUT, locals()
-    )
+        self.cli += ["-X", "POST"] + self.schema.process(locals()) + extra_args
+        return self
 
+    def put(
+        self, url: str, headers: dict = None, payload: dict = None,
+        extra_args: list = []
+    ):
+        self.__common__(locals())
 
-def patch(
-    container: Container, url: str,
-    silent: bool = False, show_error: bool = False,
-    headers: dict = None, payload: dict = None, root: str = None
-) -> Container:
-    return _exec(
-        container, Actions.PATCH, locals()
-    )
+        self.cli += ["-X", "PUT"] + self.schema.process(locals()) + extra_args
+        return self
 
+    def patch(
+        self, url: str, headers: dict = None, payload: dict = None,
+        extra_args: list = []
+    ):
+        self.__common__(locals())
 
-def delete(
-    container: Container, url: str,
-    silent: bool = False, show_error: bool = False,
-    headers: dict = None, root: str = None
-) -> Container:
-    return _exec(
-        container, Actions.DELETE, locals()
-    )
+        self.cli += ["-X", "PATCH"] + \
+            self.schema.process(locals()) + extra_args
+        return self
+
+    def delete(
+        self, url: str, headers: dict = None, payload: dict = None,
+        extra_args: list = []
+    ):
+        self.__common__(locals())
+
+        self.cli += ["-X", "DELETE"] + \
+            self.schema.process(locals()) + extra_args
+        return self

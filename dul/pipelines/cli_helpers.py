@@ -1,3 +1,6 @@
+from dagger.api.gen import Container
+
+
 class Argument:
     def __init__(
         self, format: callable
@@ -6,19 +9,19 @@ class Argument:
 
 
 class Flag(Argument):
-    pass
+    ...
 
 
 class Positional(Argument):
-    pass
+    ...
 
 
 class Once(Argument):
-    pass
+    ...
 
 
 class Repeat(Argument):
-    pass
+    ...
 
 
 class Schema(dict):
@@ -60,3 +63,24 @@ class Schema(dict):
                         pass
 
         return args
+
+
+class pipe():
+    def __init__(self):
+        self.cli_schema: dict
+        self.cli: list
+
+    def __call__(
+        self, container: Container, root: str = None,
+    ) -> Container:
+        pipeline = container
+        if root is not None:
+            pipeline = container.with_workdir(root)
+
+        return (
+            pipeline.
+            with_exec(self.cli)
+        )
+
+    def _process_parameters(self, schema: Schema, extra_args: list = [], *args, **kwargs):
+        self.cli += schema.process(locals()) + extra_args
