@@ -1,9 +1,7 @@
 class Argument:
     def __init__(
-        self, name,
-        format: callable = lambda name, value: [name, value]
+        self, format: callable
     ) -> None:
-        self.name = name
         self.format = format
 
 
@@ -41,23 +39,23 @@ class Schema(dict):
                 arg_val = getattr(var_value, "value", var_value)
                 match type(arg):
                     case Flag():
-                        args.append(arg.name)
+                        args.append(arg.format())
                     case Positional():
                         v = getattr(arg_val, "value", arg_val)
-                        args.append(v)
+                        args.append(arg.format(v))
                     case Once():
                         v = getattr(arg_val, "value", arg_val)
-                        args.extend(arg.format(arg.name, v))
+                        args.extend(arg.format(v))
                     case Repeat():
                         match type(arg_val):
                             case list():
                                 for item in arg_val:
                                     v = getattr(item, "value", item)
-                                    args.extend(arg.format(arg.name, v))
+                                    args.extend(arg.format(v))
                             case dict():
                                 for k, v in arg_val.items():
                                     v = getattr(item, "value", item)
-                                    args.extend(arg.format(arg.name, v))
+                                    args.extend(arg.format(k, v))
                     case None:
                         pass
 

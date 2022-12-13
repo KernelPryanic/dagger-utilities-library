@@ -18,7 +18,7 @@ class Actions(Enum):
     PLAN = "plan"
     APPLY = "apply"
     DESTROY = "destroy"
-    FORMAT = "format"
+    FORMAT = "fmt"
     SHOW = "show"
     WORKSPACE = "workspace"
 
@@ -27,7 +27,8 @@ class LockfileModes(Enum):
     READONLY = "readonly"
 
 
-def tf_args_format(name, value): return [f"{name}={value}"]
+def flag(name): return lambda: [name]
+def once(name): return lambda value: [f"{name}={value}"]
 
 
 argument_schemas = {
@@ -39,64 +40,101 @@ argument_schemas = {
     "version": Schema(),
     "init": Schema(
         {
-            "backend": Once("-backend", tf_args_format),
-            "backend_config": Once("-backend-config", tf_args_format),
-            "force_copy": Flag("-force-copy"),
-            "from_module": Once("-from-module", tf_args_format),
-            "get": Once("-get", tf_args_format),
-            "input": Once("-input", tf_args_format),
-            "lock": Once("-lock", tf_args_format),
-            "lock_timeout": Once("-lock-timeout", tf_args_format),
-            "no_color": Flag("-no-color"),
-            "plugin_dir": Flag("-plugin-dir"),
-            "reconfigure": Flag("-reconfigure"),
-            "migrate_state": Flag("-migrate-state"),
-            "upgrade": Flag("-upgrade"),
-            "lockfile": Once("-lockfile", tf_args_format),
-            "ignore_remote_version": Flag("-ignore-remote-version")
+            "backend": Once(once("-backend")),
+            "backend_config": Once(once("-backend-config")),
+            "force_copy": Flag(flag("-force-copy")),
+            "from_module": Once(once("-from-module")),
+            "get": Once(once("-get")),
+            "input": Once(once("-input")),
+            "lock": Once(once("-lock")),
+            "lock_timeout": Once(once("-lock-timeout")),
+            "no_color": Flag(flag("-no-color")),
+            "plugin_dir": Flag(flag("-plugin-dir")),
+            "reconfigure": Flag(flag("-reconfigure")),
+            "migrate_state": Flag(flag("-migrate-state")),
+            "upgrade": Flag(flag("-upgrade")),
+            "lockfile": Once(once("-lockfile")),
+            "ignore_remote_version": Flag(flag("-ignore-remote-version"))
         }
     ),
     "validate": Schema(
         {
-            "json": Flag("-json"),
-            "no-color": Flag("-no-color")
+            "json": Flag(flag("-json")),
+            "no-color": Flag(flag("-no-color"))
         }
     ),
     "plan": Schema(
         {
-            "destroy": Flag("-destroy"),
-            "refresh_only": Flag("-refresh-only"),
-            "refresh": Once("-refresh", tf_args_format),
-            "replace": Once("-replace", tf_args_format),
-            "target": Once("-target", tf_args_format),
-            "vars": Repeat("-var", lambda name, k, v: [name, f"{k}={v}"]),
-            "var_file": Once("-var-file", tf_args_format),
-            "compact_warnings": Flag("-compact-warnings"),
-            "detailed_exitcode": Flag("-detailed-exitcode"),
-            "input": Once("-input", tf_args_format),
-            "lock": Once("-lock", tf_args_format),
-            "lock_timeout": Once("-lock-timeout", tf_args_format),
-            "no_color": Flag("-no-color"),
-            "out": Once("-out", tf_args_format),
-            "parallelism": Once("-parallelism", tf_args_format),
-            "state": Once("-state", tf_args_format)
+            "destroy": Flag(flag("-destroy")),
+            "refresh_only": Flag(flag("-refresh-only")),
+            "refresh": Once(once("-refresh")),
+            "replace": Once(once("-replace")),
+            "target": Once(once("-target")),
+            "vars": Repeat(lambda k, v: ["-var", f"{k}={v}"]),
+            "var_file": Once(once("-var-file")),
+            "compact_warnings": Flag(flag("-compact-warnings")),
+            "detailed_exitcode": Flag(flag("-detailed-exitcode")),
+            "input": Once(once("-input")),
+            "lock": Once(once("-lock")),
+            "lock_timeout": Once(once("-lock-timeout")),
+            "no_color": Flag(flag("-no-color")),
+            "out": Once(once("-out")),
+            "parallelism": Once(once("-parallelism")),
+            "state": Once(once("-state"))
         }
     ),
     "apply": Schema(
         {
-            "auto_approve": Flag("-auto-approve"),
-            "backup": Once("-backup", tf_args_format),
-            "compact_warnings": Flag("-compact-warnings"),
-            "destroy": Flag("-destroy"),
-            "lock": Once("-lock", tf_args_format),
-            "lock_timeout": Once("-lock-timeout", tf_args_format),
-            "input": Once("-input", tf_args_format),
-            "no_color": Flag("-no-color"),
-            "parallelism": Once("-parallelism", tf_args_format),
-            "state": Once("-state", tf_args_format),
-            "state_out": Once("-state-out", tf_args_format)
+            "auto_approve": Flag(flag("-auto-approve")),
+            "backup": Once(once("-backup")),
+            "compact_warnings": Flag(flag("-compact-warnings")),
+            "destroy": Flag(flag("-destroy")),
+            "lock": Once(once("-lock")),
+            "lock_timeout": Once(once("-lock-timeout")),
+            "input": Once(once("-input")),
+            "no_color": Flag(flag("-no-color")),
+            "parallelism": Once(once("-parallelism")),
+            "state": Once(once("-state")),
+            "state_out": Once(once("-state-out"))
         }
-    )
+    ),
+    "destroy": Schema(
+        {
+            "auto_approve": Flag(flag("-auto-approve")),
+            "backup": Once(once("-backup")),
+            "compact_warnings": Flag(flag("-compact-warnings")),
+            "lock": Once(once("-lock")),
+            "lock_timeout": Once(once("-lock-timeout")),
+            "input": Once(once("-input")),
+            "no_color": Flag(flag("-no-color")),
+            "parallelism": Once(once("-parallelism")),
+            "state": Once(once("-state")),
+            "state_out": Once(once("-state-out"))
+        }
+    ),
+    "format": Schema(
+        {
+            "list": Once(once("-list")),
+            "write": Once(once("-write")),
+            "diff": Flag(flag("-diff")),
+            "check": Flag(flag("-check")),
+            "no_color": Flag(flag("-no-color")),
+            "recursive": Flag(flag("-recursive"))
+        }
+    ),
+    "show": Schema(
+        {
+            "no_color": Flag(flag("-no-color")),
+            "json": Flag(flag("-json"))
+        }
+    ),
+    "workspace": {
+        "delete": Schema(),
+        "list": Schema(),
+        "new": Schema(),
+        "select": Schema(),
+        "show": Schema()
+    }
 }
 
 
@@ -119,15 +157,14 @@ def _exec(
     root: str = None,  *args, **kwargs
 ) -> Container:
     parameters = locals()
-    method_name = get_method_name(2)
     arguments = []
     exec_arguments += argument_schemas[get_method_name()].process(parameters)
-    arguments += argument_schemas[method_name].process(parameters)
+    arguments += argument_schemas[get_method_name(2)].process(parameters)
     arguments += extra_args
 
     log.info(
         "Initializing module", job=get_job_name(3),
-        module=get_module_name(2), method=method_name,
+        module=get_module_name(2), method=get_method_name(2),
         options=arguments
     )
 
@@ -188,9 +225,26 @@ def apply(
     return _exec(container, Actions.APPLY, locals())
 
 
-def format(container: Container, recursive: bool = None, root: str = None) -> Container:
-    return (
-        container.
-        with_entrypoint("terraform").
-        with_exec(["fmt", "-check", "-recursive", f"{root}"])
-    )
+def destroy(
+    container: Container, auto_approve: bool = None, backup: str = None,
+    compact_warnings: bool = None, lock: bool = None,
+    lock_timeout: str = None, input: bool = None, no_color: bool = None,
+    parallelism: int = None, state: str = None, state_out: str = None,
+    root: str = None, *args, **kwargs
+) -> Container:
+    return _exec(container, Actions.DESTROY, locals())
+
+
+def format(
+    container: Container, list: bool = None, write: bool = None,
+    diff: bool = None, check: bool = None, no_color: bool = None,
+    recursive: bool = None, root: str = None
+) -> Container:
+    return _exec(container, Actions.FORMAT, locals())
+
+
+def show(
+    container: Container, no_color: bool = None,
+    json: bool = None, root: str = None
+) -> Container:
+    return _exec(container, Actions.SHOW, locals())

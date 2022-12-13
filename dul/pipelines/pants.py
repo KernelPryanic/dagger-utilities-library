@@ -59,55 +59,58 @@ class TestOuput(Enum):
     NONE = "none"
 
 
+def once(name): return lambda value: [f"{name}={value}"]
+def repeat(name): return once(name)
+
+
 argument_schemas = {
     "format": Schema(
         {
-            "only": Repeat("--only")
+            "only": Repeat(repeat("--only"))
         }
     ),
     "lint": Schema(
         {
-            "only": Repeat("--only"),
-            "skip_formatters": Once("--skip-formatters")
+            "only": Repeat(repeat("--only")),
+            "skip_formatters": Once(once("--skip-formatters"))
         }
     ),
     "run": Schema(
         {
-            "args": Once("--args"),
-            "cleanup": Once("--cleanup"),
-            "debug_adapter": Once("--debug-adapter")
+            "args": Once(once("--args")),
+            "cleanup": Once(once("--cleanup")),
+            "debug_adapter": Once(once("--debug-adapter"))
         }
     ),
     "test": Schema(
         {
-            "debug": Once("--debug"),
-            "debug_adapter": Once("--debug-adapter"),
-            "force": Once("--force"),
-            "output": Once("--output"),
-            "use_coverage": Once("--use-coverage"),
-            "open_coverage": Once("--open-coverage"),
-            "shard": Once("--shard"),
-            "timeouts": Once("--timeouts")
+            "debug": Once(once("--debug")),
+            "debug_adapter": Once(once("--debug-adapter")),
+            "force": Once(once("--force")),
+            "output": Once(once("--output")),
+            "use_coverage": Once(once("--use-coverage")),
+            "open_coverage": Once(once("--open-coverage")),
+            "extra_env_vars": Repeat(lambda k, v: ["--extra-env-vars", f"{k}={v}"]),
+            "shard": Once(once("--shard")),
+            "timeouts": Once(once("--timeouts"))
         }
     ),
     "check": Schema(
         {
-            "only": Repeat("--only")
+            "only": Repeat(repeat("--only"))
         }
     )
 }
 
 
 def install(container: Container, root: str = None) -> Container:
-    method_name = get_method_name()
-
     pipeline = container
     if root is not None:
         pipeline = container.with_workdir(root)
 
     log.info(
         "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=method_name
+        module=get_module_name(), method=get_method_name()
     )
 
     return (
@@ -121,12 +124,12 @@ def _exec(
     extra_args: list = [], root: str = None, *args, **kwargs
 ) -> Container:
     parameters = locals()
-    method_name = get_method_name(2)
-    arguments = argument_schemas[method_name].process(parameters) + extra_args
+    arguments = argument_schemas[get_method_name(
+        2)].process(parameters) + extra_args
 
     log.info(
         "Initializing module", job=get_job_name(3),
-        module=get_module_name(2), method=method_name,
+        module=get_module_name(2), method=get_method_name(2),
         arguments=arguments
     )
 
@@ -144,7 +147,7 @@ def format(
     container: Container, target: str = "::",
     only: list(Formatters) = None, root: str = None
 ) -> Container:
-    return _exec(container, Actions.FORMAT, target=target, root=root, only=only)
+    return _exec(container, Actions.FORMAT, locals())
 
 
 def lint(
@@ -152,16 +155,13 @@ def lint(
     only: list(Linters) = None, skip_formatters: bool = False,
     root: str = None
 ) -> Container:
-    return _exec(
-        container, Actions.LINT, target=target, root=root,
-        only=only, skip_formatters=skip_formatters
-    )
+    return _exec(container, Actions.LINT, locals())
 
 
 def package(
     container: Container, target: str = "::", root: str = None
 ) -> Container:
-    return _exec(container, Actions.PACKAGE, target=target, root=root)
+    return _exec(container, Actions.PACKAGE, locals())
 
 
 def run(
@@ -169,9 +169,7 @@ def run(
     cleanup: bool = None, debug_adapter: bool = None, root: str = None
 ) -> Container:
     return _exec(
-        container, Actions.RUN, target=target, root=root,
-        args=args, cleanup=cleanup, debug_adapter=debug_adapter
-    )
+        container, Actions.RUN, locals())
 
 
 def test(
@@ -181,20 +179,10 @@ def test(
     open_coverage: bool = None, extra_env_vars: dict = None,
     shard: str = None, test_timeouts: bool = None, root: str = None
 ) -> Container:
-    extra_args = [
-        "--test-extra-env-vars",
-        *[f"{k}={v}" for k, v in extra_env_vars.items()]
-    ]
-
-    return _exec(
-        container, Actions.TEST, target=target, extra_args=extra_args, root=root,
-        debug=debug, debug_adapter=debug_adapter, force=force, output=output,
-        use_coverage=use_coverage, open_coverage=open_coverage, extra_env_vars=extra_env_vars,
-        shard=shard, test_timeouts=test_timeouts
-    )
+    return _exec(container, Actions.TEST, locals())
 
 
 def check(
     container: Container, target: str = "::", only: list[str] = None, root: str = None
 ) -> Container:
-    return _exec(container, Actions.FORMAT, target=target, root=root, only=only)
+    return _exec(container, Actions.CHECK, locals())

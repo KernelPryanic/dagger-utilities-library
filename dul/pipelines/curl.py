@@ -21,16 +21,19 @@ class Actions(Enum):
     DELETE = "DELETE"
 
 
+def flag(name): return lambda: [name]
+
+
 argument_schemas = {
     "_exec": Schema(
         {
-            "url": Positional(),
-            "headers": Repeat("-H", lambda name, k, v: [name, f"{k}: {v}"]),
-            "payload": Once("-d", lambda name, v: [name, json.dumps(v)]),
-            "redirect": Flag("-L"),
-            "silent": Flag("-s"),
-            "show_error": Flag("-S"),
-            "output": Once("-o")
+            "url": Positional(lambda v: [f"{v}"]),
+            "headers": Repeat(lambda k, v: ["-H", f"{k}: {v}"]),
+            "payload": Once(lambda v: ["-d", json.dumps(v)]),
+            "redirect": Flag(flag("-L")),
+            "silent": Flag(flag("-s")),
+            "show_error": Flag(flag("-S")),
+            "output": Once(lambda v: ["-o", v])
         }
     ),
     "get": Schema(),
@@ -48,25 +51,23 @@ def _exec(
     output: str = None, extra_args: list = [], root: str = None
 ) -> Container:
     if len(url) == 0:
-        log.warning(
-            "URL is not defined", job=get_job_name(),
-            module=get_module_name(), url=url, headers=headers,
-            payload=payload
+        log.error(
+            "URL is not defined", job=get_job_name(3),
+            module=get_module_name(2), method=get_method_name(2),
+            url=url, headers=headers, payload=payload, root=root
         )
         return container
 
     parameters = locals()
-    method_name = get_method_name(2)
     arguments = []
     exec_arguments += argument_schemas[get_method_name()].process(parameters)
-    arguments += argument_schemas[method_name].process(parameters)
+    arguments += argument_schemas[get_method_name(2)].process(parameters)
     arguments += extra_args
 
     log.info(
         "Initializing module", job=get_job_name(3),
         module=get_module_name(2), method=get_method_name(2),
-        url=url, headers=headers, payload=payload, output=output,
-        root=root
+        url=url, headers=headers, payload=payload, root=root
     )
 
     pipeline = container
