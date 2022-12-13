@@ -10,7 +10,7 @@ from .curl import curl
 log = structlog.get_logger()
 
 
-class LockfileModes(Enum):
+class LockfileMode(Enum):
     READONLY = "readonly"
 
 
@@ -19,7 +19,9 @@ def once(name): return lambda value: [f"{name}={value}"]
 
 
 class terraform(pipe):
-    def __init__(self, chdir: str = None, extra_args: list = []) -> pipe:
+    def __init__(
+        self, version: bool = None, chdir: str = None, extra_args: list = []
+    ) -> pipe:
         parameters = locals()
         self.schema = Schema(
             {
@@ -64,14 +66,11 @@ class terraform(pipe):
         )
         schema = Schema(
             {
-                "chdir": Once("-chdir")
+                "version": Flag(flag("-version")),
+                "chdir": Once(once("-chdir"))
             }
         )
-        self.cli = ["terraform"] + schema.process(parameters) + extra_args
-
-    def version(self) -> pipe:
-        self.cli += ["-version"]
-        return self
+        self.cli = ["terraform"] + extra_args + schema.process(parameters)
 
     def init(
         self, backend: bool = None, backend_config: str = None,
@@ -79,18 +78,18 @@ class terraform(pipe):
         input: bool = None, lock: bool = None, lock_timeout: int = None,
         no_color: bool = None, plugin_dir: str = None, reconfigure: bool = None,
         migrate_state: bool = None, upgrade: bool = None,
-        lockfile: LockfileModes = None, ignore_remote_version: bool = None,
+        lockfile: LockfileMode = None, ignore_remote_version: bool = None,
         extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        self.cli += ["init"] + self.schema.process(parameters) + extra_args
+        self.cli += ["init"] + extra_args + self.schema.process(parameters)
         return self
 
     def validate(
         self, json: bool = None, no_color: bool = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        self.cli += ["validate"] + self.schema.process(parameters) + extra_args
+        self.cli += ["validate"] + extra_args + self.schema.process(parameters)
         return self
 
     def plan(
@@ -102,7 +101,7 @@ class terraform(pipe):
         parallelism: int = None, state: str = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        self.cli += ["plan"] + self.schema.process(parameters) + extra_args
+        self.cli += ["plan"] + extra_args + self.schema.process(parameters)
         return self
 
     def apply(
@@ -113,7 +112,7 @@ class terraform(pipe):
         extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        self.cli += ["apply"] + self.schema.process(parameters) + extra_args
+        self.cli += ["apply"] + extra_args + self.schema.process(parameters)
         return self
 
     def destroy(
@@ -124,7 +123,7 @@ class terraform(pipe):
         extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        self.cli += ["destroy"] + self.schema.process(parameters) + extra_args
+        self.cli += ["destroy"] + extra_args + self.schema.process(parameters)
         return self
 
     def format(
@@ -133,17 +132,17 @@ class terraform(pipe):
         recursive: bool = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        self.cli += ["format"] + self.schema.process(parameters) + extra_args
+        self.cli += ["format"] + extra_args + self.schema.process(parameters)
         return self
 
     def show(
         self, json: bool = None, no_color: bool = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
-        self.cli += ["show"] + self.schema.process(parameters) + extra_args
+        self.cli += ["show"] + extra_args + self.schema.process(parameters)
         return self
 
-    class _workspace(pipe):
+    class __workspace(pipe):
         def __init__(self, cli: list = [], extra_args: list = []) -> pipe:
             self.schema = {
                 "force": Flag(flag("-force")),
@@ -158,8 +157,8 @@ class terraform(pipe):
             lock_timeout: str = None, extra_args: list = []
         ) -> pipe:
             parameters = locals()
-            self.cli += ["delete"] + \
-                self.schema.process(parameters) + extra_args
+            self.cli += ["delete"] + extra_args + \
+                self.schema.process(parameters)
             return self
 
         def list(self, extra_args: list = []) -> pipe:
@@ -168,7 +167,7 @@ class terraform(pipe):
 
         def new(self, extra_args: list = []) -> pipe:
             parameters = locals()
-            self.cli += ["new"] + self.schema.process(parameters) + extra_args
+            self.cli += ["new"] + extra_args + self.schema.process(parameters)
             return self
 
         def select(self, extra_args: list = []) -> pipe:
@@ -181,8 +180,8 @@ class terraform(pipe):
 
     def workspace(
         self, extra_args: list = []
-    ) -> _workspace:
-        return self._workspace(self.cli, locals())
+    ) -> __workspace:
+        return self.__workspace(self.cli, locals())
 
 
 def install(container: Container, version: str, root: str = None):

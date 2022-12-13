@@ -4,21 +4,21 @@ import structlog
 from dagger.api.gen import Container
 
 from ..scripts.common.structlogging import *
-from .cli_helpers import Once, Repeat, Schema, pipe
+from .cli_helpers import Once, Positional, Repeat, Schema, pipe
 from .curl import curl
 
 log = structlog.get_logger()
 
 
-class Formatters(Enum):
+class Formatter(Enum):
     pass
 
 
-class Linters(Enum):
+class Linter(Enum):
     pass
 
 
-class PyFormatters(Formatters):
+class PyFormatter(Formatter):
     FAKE = "fake"
     BLACK = "black"
     DOCFORMATTER = "docformatter"
@@ -28,15 +28,15 @@ class PyFormatters(Formatters):
     PYUPGRADE = "pyupgrade"
 
 
-class ShellFormatters(Formatters):
+class ShellFormatter(Formatter):
     SHFMT = "shfmt"
 
 
-class ShellLinters(Linters):
+class ShellLinter(Linter):
     SHELLCHECK = "shellcheck"
 
 
-class PyLinters(Enum):
+class PyLinter(Enum):
     BANDIT = "bandit"
     FLAKE8 = "flake8"
     PYLINT = "pylint"
@@ -57,23 +57,23 @@ class pants(pipe):
         parameters = locals()
         schema = Schema(
             {
-                "target": Once(lambda v: [v])
+                "target": Positional(lambda v: [v])
             }
         )
-        self.cli = ["./pants"] + schema.process(parameters) + extra_args
+        self.cli = ["./pants"] + extra_args + schema.process(parameters)
 
-    def format(self, only: list(Formatters) = None, extra_args: list = []) -> pipe:
+    def format(self, only: list(Formatter) = None, extra_args: list = []) -> pipe:
         parameters = locals()
         schema = Schema(
             {
                 "only": Repeat(repeat("--only"))
             }
         )
-        self.cli = ["fmt"] + schema.process(parameters) + extra_args
+        self.cli = ["fmt"] + extra_args + schema.process(parameters)
         return self
 
     def lint(
-        self, only: list(Linters) = None, skip_formatters: bool = False, extra_args: list = []
+        self, only: list(Linter) = None, skip_formatters: bool = False, extra_args: list = []
     ) -> pipe:
         parameters = locals()
         schema = Schema(
@@ -82,7 +82,7 @@ class pants(pipe):
                 "skip_formatters": Once(once("--skip-formatters"))
             }
         )
-        self.cli = ["lint"] + schema.process(parameters) + extra_args
+        self.cli = ["lint"] + extra_args + schema.process(parameters)
         return self
 
     def package(
@@ -103,7 +103,7 @@ class pants(pipe):
                 "debug_adapter": Once(once("--debug-adapter"))
             }
         )
-        self.cli = ["run"] + schema.process(parameters) + extra_args
+        self.cli = ["run"] + extra_args + schema.process(parameters)
         return self
 
     def test(
@@ -127,7 +127,7 @@ class pants(pipe):
                 "timeouts": Once(once("--timeouts"))
             }
         )
-        self.cli = ["test"] + schema.process(parameters) + extra_args
+        self.cli = ["test"] + extra_args + schema.process(parameters)
         return self
 
     def check(
@@ -139,7 +139,7 @@ class pants(pipe):
                 "only": Repeat(repeat("--only"))
             }
         )
-        self.cli = ["check"] + schema.process(parameters) + extra_args
+        self.cli = ["check"] + extra_args + schema.process(parameters)
         return self
 
 

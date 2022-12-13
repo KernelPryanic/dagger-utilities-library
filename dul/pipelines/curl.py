@@ -21,7 +21,7 @@ class curl(pipe):
         parameters = locals()
         self.schema = Schema(
             {
-                "url": Positional(lambda v: [f"{v}"]),
+                "url": Positional(lambda v: [v]),
                 "headers": Repeat(lambda k, v: ["-H", f"{k}: {v}"]),
                 "payload": Once(lambda v: ["-d", json.dumps(v)])
             }
@@ -34,7 +34,7 @@ class curl(pipe):
                 "output": Once(lambda v: ["-o", v])
             }
         )
-        self.cli = ["curl"] + schema.process(parameters) + extra_args
+        self.cli = ["curl"] + extra_args + schema.process(parameters)
 
     def __common__(
         self, url: str, headers: dict = None, payload: dict = None,
@@ -54,7 +54,7 @@ class curl(pipe):
         extra_args: list = []
     ) -> pipe:
         self.__common__(locals())
-        self.cli += ["-X", "GET"] + self.schema.process(locals()) + extra_args
+        self.cli += ["-X", "GET"] + extra_args + self.schema.process(locals())
         return self
 
     def post(
@@ -62,7 +62,7 @@ class curl(pipe):
         extra_args: list = []
     ) -> pipe:
         self.__common__(locals())
-        self.cli += ["-X", "POST"] + self.schema.process(locals()) + extra_args
+        self.cli += ["-X", "POST"] + extra_args + self.schema.process(locals())
         return self
 
     def put(
@@ -70,7 +70,7 @@ class curl(pipe):
         extra_args: list = []
     ) -> pipe:
         self.__common__(locals())
-        self.cli += ["-X", "PUT"] + self.schema.process(locals()) + extra_args
+        self.cli += ["-X", "PUT"] + extra_args + self.schema.process(locals())
         return self
 
     def patch(
@@ -78,8 +78,8 @@ class curl(pipe):
         extra_args: list = []
     ) -> pipe:
         self.__common__(locals())
-        self.cli += ["-X", "PATCH"] + \
-            self.schema.process(locals()) + extra_args
+        self.cli += ["-X", "PATCH"] + extra_args + \
+            self.schema.process(locals())
         return self
 
     def delete(
@@ -87,6 +87,6 @@ class curl(pipe):
         extra_args: list = []
     ) -> pipe:
         self.__common__(locals())
-        self.cli += ["-X", "DELETE"] + \
-            self.schema.process(locals()) + extra_args
+        self.cli += ["-X", "DELETE"] + extra_args + \
+            self.schema.process(locals())
         return self

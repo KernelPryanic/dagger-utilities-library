@@ -34,10 +34,10 @@ class pip(pipe):
 
     def install(self, packages: list[str], extra_args: list = []) -> pipe:
         self.__common__(locals())
-        self.cli += ["install"] + self.schema.process(locals()) + extra_args
+        self.cli += ["install"] + extra_args + self.schema.process(locals())
         return self
 
     def uninstall(self, packages: list[str], extra_args: list = []) -> pipe:
         self.__common__(locals())
-        self.cli += ["uninstall"] + self.schema.process(locals()) + extra_args
+        self.cli += ["uninstall"] + extra_args + self.schema.process(locals())
         return self

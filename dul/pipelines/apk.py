@@ -32,7 +32,7 @@ class apk(pipe):
             }
         )
 
-        self.cli = ["apk"] + schema.process(parameters) + extra_args
+        self.cli = ["apk"] + extra_args + schema.process(parameters)
 
     def __common__(
         self, packages: list[str], *args, **kwargs
@@ -47,10 +47,10 @@ class apk(pipe):
 
     def install(self, packages: list[str], extra_args: list = []) -> pipe:
         self.__common__(locals())
-        self.cli += ["add"] + self.schema.process(locals()) + extra_args
+        self.cli += ["add"] + extra_args + self.schema.process(locals())
         return self
 
     def uninstall(self, packages: list[str], extra_args: list = []) -> pipe:
         self.__common__(locals())
-        self.cli += ["del"] + self.schema.process(locals()) + extra_args
+        self.cli += ["del"] + extra_args + self.schema.process(locals())
         return self

@@ -6,13 +6,12 @@ from dagger.api.gen import Container
 from dul.scripts.common.structlogging import *
 
 from . import curl
-from .generic import (get_job_name, get_method_name, get_module_name,
-                      parse_options)
+from .cli_helpers import Flag, Once, Positional, Repeat, Schema, pipe
 
 log = structlog.get_logger()
 
 
-class Formats(Enum):
+class Format(Enum):
     DEFAULT = "default"
     JSON = "json"
     CHECKSTYLE = "checkstyle"
@@ -21,21 +20,41 @@ class Formats(Enum):
     SARIF = "sarif"
 
 
-options_reflection = {
-    "exec": {
-        "format": "--format",
-        "config": "--config",
-        "ignore_module": "--ignore-module",
-        "enable_rule": "--enable-rule",
-        "disable_rule": "--disable-rule",
-        "only": "--only",
-        "enable_plugin": "--enable-plugin",
-        "vars_file": "--var-file",
-        "module": "--module",
-        "force": "--force",
-        "color": "--color"
-    }
-}
+def flag(name): return lambda: [name]
+def once(name): return lambda value: [f"{name}={value}"]
+def repeat(name): return once(name)
+
+
+class tflint(pipe):
+    def __init__(
+        self, version: bool = None, init: bool = None, format: Format = None,
+        config: str = None, ignore_module: str = None, enable_rule: str = None,
+        disable_rule: str = None, only: list[str] = None, enable_plugin: str = None,
+        var_file: str = None, vars: dict = None, module: bool = None, force: bool = None,
+        color: bool = None, no_color: bool = None, target: str = None, extra_args: list = []
+    ) -> pipe:
+        parameters = locals()
+        schema = Schema(
+            {
+                "target": Positional(lambda v: [v]),
+                "version": Flag(flag("-v")),
+                "init": Flag(flag("--init")),
+                "format": Once(once("-f")),
+                "config": Once(once("-c")),
+                "ignore_module": Once(once("--ignore-module")),
+                "enable_rule": Once(once("--enable-rule")),
+                "disable_rule": Once(once("--disable-rule")),
+                "only": Repeat(repeat("--only")),
+                "enable_plugin": Once(once("--enable-plugin")),
+                "var_file": Once(once("--var-file")),
+                "vars": Repeat(lambda k, v: ["-var", f"{k}={v}"]),
+                "module": Flag(flag("--module")),
+                "force": Flag(flag("--force")),
+                "color": Flag(flag("--color")),
+                "no_color": Flag(flag("--no-color"))
+            }
+        )
+        self.cli = ["tflint"] + extra_args + schema.process(parameters)
 
 
 def install(container: Container, version: str):
@@ -50,57 +69,4 @@ def install(container: Container, version: str):
         with_exec(["unzip", f"{binary_name}.zip"]).
         with_exec(["chmod", "+x", binary_name]).
         with_exec(["mv", binary_name, "/usr/bin/"])
-    )
-
-
-def init(container: Container, root: str = None):
-    log.info(
-        "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=get_method_name()
-    )
-
-    pipeline = container
-    if root is not None:
-        pipeline = container.with_workdir(root)
-
-    return (
-        pipeline.
-        with_workdir(root).
-        with_exec(["tflint", "--init"])
-    )
-
-
-def lint(
-    container: Container, root: str = None, target: str = "**/*.tf",
-    format: Formats = Formats.DEFAULT, config: str = None, ignore_module: str = None,
-    enable_rule: str = None, disable_rule: str = None, only: str = None,
-    enable_plugin: str = None, vars_file: str = None, vars: dict[str, str] = None,
-    module: bool = False, force: bool = False, color: bool = False
-) -> Container:
-    arguments = locals()
-    options = {}
-    method_name = get_method_name()
-
-    if vars is not None:
-        for k, v in vars.items():
-            options.setdefault("--var", [])
-            options["--var"].append(f"'{k}={v}'")
-
-    processed_options = parse_options(
-        arguments, options, options_reflection, method_name
-    )
-
-    log.info(
-        "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=method_name,
-        options=processed_options,
-    )
-
-    pipeline = container
-    if root is not None:
-        pipeline = container.with_workdir(root)
-
-    return (
-        pipeline.
-        with_exec(["tflint", target] + processed_options)
     )
