@@ -4,8 +4,8 @@ from dagger.api.gen import Container
 
 from dul.scripts.common.structlogging import *
 
+from . import curl
 from .cli_helpers import Flag, Once, Repeat, Schema, pipe
-from .curl import curl
 
 log = structlog.get_logger()
 
@@ -180,7 +180,7 @@ class cli(pipe):
 
 def install(container: Container, version: str, root: str = None) -> Container:
     return (
-        curl(redirect=True, silent=True, show_error=True, output="./pants").
+        curl.cli(redirect=True, silent=True, show_error=True, output="./pants").
         get(f"https://releases.hashicorp.com/terraform/{version}/terraform_{version}_linux_amd64.zip")(container, root).
         with_exec(["unzip", "terraform.zip"]).
         with_exec(["chmod", "+x", "terraform"]).

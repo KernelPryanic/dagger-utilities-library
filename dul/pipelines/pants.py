@@ -4,8 +4,8 @@ import structlog
 from dagger.api.gen import Container
 
 from ..scripts.common.structlogging import *
+from . import curl
 from .cli_helpers import Once, Positional, Repeat, Schema, pipe
-from .curl import curl
 
 log = structlog.get_logger()
 
@@ -145,7 +145,7 @@ class cli(pipe):
 
 def install(container: Container, root: str = None) -> Container:
     return (
-        curl(redirect=True, silent=True, show_error=True, output="./pants").
+        curl.cli(redirect=True, silent=True, show_error=True, output="./pants").
         get("https://static.pantsbuild.org/setup/pants")(container, root).
         with_exec(["chmod", "+x", "./pants"])
     )

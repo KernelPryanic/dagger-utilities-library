@@ -57,14 +57,11 @@ class tflint(pipe):
         self.cli = ["tflint"] + extra_args + schema.process(parameters)
 
 
-def install(container: Container, version: str):
+def install(container: Container, version: str, root: str = None):
     binary_name = "tflint"
     return (
-        curl.exec(
-            container,
-            f"https://github.com/terraform-linters/{binary_name}/releases/download/v{version}/tflint_linux_amd64.zip",
-            options=f"-sSLo{binary_name}.zip"
-        ).
+        curl.cli(redirect=True, silent=True, show_error=True, output="tfsec").
+        get(f"https://github.com/terraform-linters/{binary_name}/releases/download/v{version}/tflint_linux_amd64.zip")(container, root).
         with_exec(["unzip", f"{binary_name}.zip"]).
         with_exec(["chmod", "+x", binary_name]).
         with_exec(["mv", binary_name, "/usr/bin/"])
