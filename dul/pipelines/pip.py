@@ -9,7 +9,7 @@ from .generic import get_job_name, get_method_name
 log = structlog.get_logger()
 
 
-class pip(pipe):
+class cli(pipe):
     def __init__(
         self, extra_args: list = []
     ):

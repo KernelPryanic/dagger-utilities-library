@@ -59,7 +59,6 @@ class tflint(pipe):
 
 def install(container: Container, version: str):
     binary_name = "tflint"
-
     return (
         curl.exec(
             container,

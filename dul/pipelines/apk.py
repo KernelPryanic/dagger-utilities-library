@@ -12,7 +12,7 @@ log = structlog.get_logger()
 def flag(name): return lambda: [name]
 
 
-class apk(pipe):
+class cli(pipe):
     def __init__(
         self, force: bool = None, quite: bool = None,
         update: bool = None, no_cache: bool = None, extra_args: list = []

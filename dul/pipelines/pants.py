@@ -52,7 +52,7 @@ def once(name): return lambda value: [f"{name}={value}"]
 def repeat(name): return once(name)
 
 
-class pants(pipe):
+class cli(pipe):
     def __init__(self, target: str = "::", extra_args: list = []):
         parameters = locals()
         schema = Schema(

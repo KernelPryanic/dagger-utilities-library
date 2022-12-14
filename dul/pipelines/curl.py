@@ -13,7 +13,7 @@ log = structlog.get_logger()
 def flag(name): return lambda: [name]
 
 
-class curl(pipe):
+class cli(pipe):
     def __init__(
         self, redirect: bool = None, silent: bool = None,
         show_error: bool = None, output: str = None, extra_args: list = []

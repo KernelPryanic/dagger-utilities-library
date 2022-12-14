@@ -4,12 +4,15 @@ import subprocess
 
 import anyio
 import structlog
-from dul.scripts.common.structlogging import *
+
 from dul.scripts.common import filesystem
+from dul.scripts.common.structlogging import *
+
+from ...pipelines import tfdocs
 
 parser = argparse.ArgumentParser()
 parser.add_argument("dir", nargs='?', default=os.getcwd())
-parser.add_argument("-l", "--local", action='store_true')
+parser.add_argument("-c", "--check", action='store_true')
 args = parser.parse_args()
 
 log = structlog.get_logger()
@@ -17,12 +20,18 @@ log = structlog.get_logger()
 readme_name = "README.md"
 
 
-async def docs(path: str, local: bool):
-    command = f"terraform-docs markdown table --output-file {readme_name} --output-mode inject"
+async def docs(path: str, check: bool):
+    command = (
+        tfdocs.tfdocs(
+            target=path,
+            output_file=readme_name,
+            output_mode=tfdocs.OutputMode.INJECT
+        ).markdown().table().cli
+    )
 
     def generate_readme():
         process = subprocess.Popen(
-            command.split() + [path],
+            command,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
@@ -33,9 +42,7 @@ async def docs(path: str, local: bool):
             log.error(error, path=path)
             raise SystemExit(1)
 
-    if local:
-        generate_readme()
-    else:
+    if check:
         readme = os.path.join(path, readme_name)
         if not os.path.exists(readme):
             log.error(
@@ -56,12 +63,14 @@ async def docs(path: str, local: bool):
                     hint=f"Try running {command} {path}"
                 )
                 raise SystemExit(1)
+    else:
+        generate_readme()
 
 
 async def main():
     async with anyio.create_task_group() as tg:
         for path in filesystem.find_files(args.dir, "main.tf"):
-            tg.start_soon(docs, os.path.dirname(path), args.local)
+            tg.start_soon(docs, os.path.dirname(path), args.check)
 
 if __name__ == "__main__":
     anyio.run(main)

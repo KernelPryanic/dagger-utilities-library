@@ -18,13 +18,15 @@ def flag(name): return lambda: [name]
 def once(name): return lambda value: [f"{name}={value}"]
 
 
-class terraform(pipe):
+class cli(pipe):
     def __init__(
         self, version: bool = None, chdir: str = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
         self.schema = Schema(
             {
+                "version": Flag(flag("-version")),
+                "chdir": Once(once("-chdir")),
                 "no_color": Flag(flag("-no-color")),
                 "backend": Once(once("-backend")),
                 "backend_config": Once(once("-backend-config")),
@@ -64,13 +66,7 @@ class terraform(pipe):
                 "recursive": Flag(flag("-recursive"))
             }
         )
-        schema = Schema(
-            {
-                "version": Flag(flag("-version")),
-                "chdir": Once(once("-chdir"))
-            }
-        )
-        self.cli = ["terraform"] + extra_args + schema.process(parameters)
+        self.cli = ["terraform"] + extra_args + self.schema.process(parameters)
 
     def init(
         self, backend: bool = None, backend_config: str = None,
@@ -143,22 +139,21 @@ class terraform(pipe):
         return self
 
     class __workspace(pipe):
-        def __init__(self, cli: list = [], extra_args: list = []) -> pipe:
+        def __init__(self, parent: pipe, extra_args: list = []) -> pipe:
             self.schema = {
                 "force": Flag(flag("-force")),
                 "lock": Once(once("-lock")),
                 "lock_timeout": Once(once("-lock-timeout")),
                 "state": Once(once("-state"))
             }
-            self.cli = cli + ["workspace"] + extra_args
+            self.cli = parent.cli + ["workspace"] + extra_args
 
         def delete(
             self, force: bool = None, lock: bool = None,
             lock_timeout: str = None, extra_args: list = []
         ) -> pipe:
-            parameters = locals()
             self.cli += ["delete"] + extra_args + \
-                self.schema.process(parameters)
+                self.schema.process(locals())
             return self
 
         def list(self, extra_args: list = []) -> pipe:
@@ -166,8 +161,7 @@ class terraform(pipe):
             return self
 
         def new(self, extra_args: list = []) -> pipe:
-            parameters = locals()
-            self.cli += ["new"] + extra_args + self.schema.process(parameters)
+            self.cli += ["new"] + extra_args + self.schema.process(locals())
             return self
 
         def select(self, extra_args: list = []) -> pipe:
@@ -181,10 +175,10 @@ class terraform(pipe):
     def workspace(
         self, extra_args: list = []
     ) -> __workspace:
-        return self.__workspace(self.cli, locals())
+        return self.__workspace(self, locals())
 
 
-def install(container: Container, version: str, root: str = None):
+def install(container: Container, version: str, root: str = None) -> Container:
     return (
         curl(redirect=True, silent=True, show_error=True, output="./pants").
         get(f"https://releases.hashicorp.com/terraform/{version}/terraform_{version}_linux_amd64.zip")(container, root).
