@@ -140,6 +140,7 @@ class cli(pipe):
 
     class __workspace(pipe):
         def __init__(self, parent: pipe, extra_args: list = []) -> pipe:
+            self.parent = parent
             self.schema = {
                 "force": Flag(flag("-force")),
                 "lock": Once(once("-lock")),

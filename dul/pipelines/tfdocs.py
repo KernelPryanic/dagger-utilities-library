@@ -2,8 +2,8 @@ from enum import Enum
 
 from dagger.api.gen import Container
 
-from .cli_helpers import Flag, Once, Positional, Schema, pipe
 from . import curl
+from .cli_helpers import Flag, Once, Positional, Schema, pipe
 
 
 class Section(Enum):
@@ -182,18 +182,27 @@ class cli(pipe):
         self.cli += ["xml"] + extra_args
         return self
 
+    class __ext(pipe):
+        def __init__(self, parent: pipe) -> pipe:
+            parameters = locals()
+            self.parent = parent
+            self.schema = Schema(
+                {
+                    "target": Positional(lambda v: [v]),
+                    "check": Flag(flag("--check"))
+                }
+            )
 
-class updater(pipe):
-    def __init__(self, check: bool = None, target: str = None, extra_args: list = []):
-        parameters = locals()
-        self.schema = Schema(
-            {
-                "target": Positional(lambda v: [v]),
-                "check": Flag(flag("-c"))
-            }
-        )
-        self.cli = ["python", "-m", "dul.scripts.terraform.update_docs"] + extra_args + \
-            self.schema.process(parameters)
+        def update(self, check: bool = None, target: str = None, extra_args: list = []) -> pipe:
+            self.cli = (
+                ["python", "-m", "dul.scripts.terraform.tfdoc_update"] +
+                extra_args + ["--command", " ".join(self.parent.cli + [target])] +
+                self.schema.process(locals())
+            )
+            return self
+
+    def ext(self, parent: pipe) -> __ext:
+        return self.__ext(self, locals())
 
 
 def install(container: Container, version: str, root: str = None) -> Container:

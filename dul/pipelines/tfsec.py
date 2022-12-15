@@ -102,6 +102,27 @@ class cli(pipe):
         )
         self.cli = ["tfsec"] + schema.process(parameters) + extra_args
 
+    class __ext(pipe):
+        def __init__(self, parent: pipe) -> pipe:
+            parameters = locals()
+            self.parent = parent
+            self.schema = Schema(
+                {
+                    "target": Positional(lambda v: [v])
+                }
+            )
+
+        def scan(self, target: str = None, extra_args: list = []) -> pipe:
+            self.cli = (
+                ["python", "-m", "dul.scripts.terraform.tfsec_scan"] +
+                extra_args + ["--command", " ".join(self.parent.cli + [target])] +
+                self.schema.process(locals())
+            )
+            return self
+
+    def ext(self, parent: pipe) -> __ext:
+        return self.__ext(self, locals())
+
 
 def install(container: Container, version: str, root: str = None) -> Container:
     return (
@@ -109,15 +130,4 @@ def install(container: Container, version: str, root: str = None) -> Container:
         get(f"https://github.com/aquasecurity/tfsec/releases/download/v{version}/tfsec-linux-amd64")(container, root).
         with_exec(["chmod", "+x", "tfsec"]).
         with_exec(["mv", "tfsec", "/usr/local/bin/"])
-    )
-
-
-def exec(container: Container, root: str, scripts_path: str) -> Container:
-    return (
-        container.
-        with_entrypoint("bash").
-        with_exec([
-            os.path.join(scripts_path, "terraform", "tfsec.sh"),
-            "-d", root,
-        ])
     )

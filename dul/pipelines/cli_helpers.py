@@ -69,6 +69,7 @@ class pipe():
     def __init__(self):
         self.schema: dict
         self.cli: list
+        self.parent: pipe
 
     def __call__(
         self, container: Container, root: str = None,

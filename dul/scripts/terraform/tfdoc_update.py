@@ -8,11 +8,10 @@ import structlog
 from dul.scripts.common import filesystem
 from dul.scripts.common.structlogging import *
 
-from ...pipelines import tfdocs
-
 parser = argparse.ArgumentParser()
 parser.add_argument("dir", nargs='?', default=os.getcwd())
-parser.add_argument("-c", "--check", action='store_true')
+parser.add_argument("--command", default="terraform-docs")
+parser.add_argument("--check", action="store_true")
 args = parser.parse_args()
 
 log = structlog.get_logger()
@@ -21,13 +20,7 @@ readme_name = "README.md"
 
 
 async def docs(path: str, check: bool):
-    command = (
-        tfdocs.tfdocs(
-            target=path,
-            output_file=readme_name,
-            output_mode=tfdocs.OutputMode.INJECT
-        ).markdown().table().cli
-    )
+    command = args.command.split(' ')
 
     def generate_readme():
         process = subprocess.Popen(
