@@ -1,26 +1,25 @@
 import structlog
-from dagger.api.gen import Container
 
 from ..common.structlogging import *
-from .generic import get_job_name, get_method_name, get_module_name
+from .cli_helpers import Flag, Once, Schema, pipe
 
 log = structlog.get_logger()
 
 
-def populate_config(
-        container: Container, root: str = None
-) -> Container:
-    pipeline = container
-    if root is not None:
-        pipeline = container.with_workdir(root)
+def flag(name): return lambda: [name]
+def once(name): return lambda value: [name, value]
 
-    log.info(
-        "Initializing module", job=get_job_name(),
-        module=get_module_name(), method=get_method_name()
-    )
 
-    return (
-        pipeline.
-        with_exec(
-            ["python", "-m", "dul.scripts.atlantis.populate_config", "--check"])
-    )
+class cli(pipe):
+    def __init__(self, conf: str = None, check: bool = None, extra_args: list = []):
+        parameters = locals()
+        schema = Schema(
+            {
+                "conf": Once(once("--conf")),
+                "check": Flag(flag("--check"))
+            }
+        )
+        self.cli = (
+            ["python", "-m", "dul.scripts.atlantis.update_config"] +
+            schema.process(parameters) + extra_args
+        )

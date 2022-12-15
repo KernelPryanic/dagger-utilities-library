@@ -184,7 +184,6 @@ class cli(pipe):
 
     class __ext(pipe):
         def __init__(self, parent: pipe) -> pipe:
-            parameters = locals()
             self.parent = parent
             self.schema = Schema(
                 {
@@ -195,7 +194,7 @@ class cli(pipe):
 
         def update(self, check: bool = None, target: str = None, extra_args: list = []) -> pipe:
             self.cli = (
-                ["python", "-m", "dul.scripts.terraform.tfdoc_update"] +
+                ["python", "-m", "dul.scripts.terraform.tfdoc.update"] +
                 extra_args + ["--command", " ".join(self.parent.cli + [target])] +
                 self.schema.process(locals())
             )
