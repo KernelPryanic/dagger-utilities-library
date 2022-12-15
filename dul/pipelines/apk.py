@@ -1,8 +1,7 @@
 import structlog
 
-from dul.scripts.common.structlogging import *
-
 from ..common.dul_exception import DULException
+from ..common.structlogging import *
 from .cli_helpers import Flag, Repeat, Schema, pipe
 from .generic import get_job_name, get_method_name
 

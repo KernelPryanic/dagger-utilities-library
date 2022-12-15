@@ -3,7 +3,7 @@ from enum import Enum
 import structlog
 from dagger.api.gen import Container
 
-from ..scripts.common.structlogging import *
+from ..common.structlogging import *
 from . import curl
 from .cli_helpers import Once, Positional, Repeat, Schema, pipe
 

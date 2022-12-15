@@ -2,8 +2,7 @@ from enum import Enum
 
 from dagger.api.gen import Container
 
-from dul.scripts.common.structlogging import *
-
+from ..common.structlogging import *
 from . import curl
 from .cli_helpers import Flag, Once, Repeat, Schema, pipe
 
