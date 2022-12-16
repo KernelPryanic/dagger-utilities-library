@@ -158,9 +158,8 @@ class cli(pipe):
             indent: int = None, required: bool = None, sensitive: bool = None,
             type: bool = None, extra_args: list = []
         ) -> pipe:
-            parameters = locals()
             self.cli = parent.cli + ["tfvars"] + \
-                extra_args + self.schema.process(parameters)
+                extra_args + self.schema.process(locals())
 
         def hcl(self, extra_args: list = []) -> pipe:
             self.cli += ["hcl"] + extra_args
@@ -179,7 +178,7 @@ class cli(pipe):
         return self
 
     def yaml(self, extra_args: list = []) -> pipe:
-        self.cli += ["xml"] + extra_args
+        self.cli += ["yaml"] + extra_args
         return self
 
     class __ext(pipe):
