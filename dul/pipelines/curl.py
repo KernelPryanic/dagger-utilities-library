@@ -21,9 +21,9 @@ class cli(pipe):
         parameters = locals()
         self.schema = Schema(
             {
-                "url": Positional(lambda v: [v]),
-                "headers": Repeat(lambda k, v: ["-H", f"\"{k}: {v}\""]),
-                "payload": Once(lambda v: ["-d", f"\"{json.dumps(v)}\""])
+                "url": Positional(lambda v: [f"{v}"]),
+                "headers": Repeat(lambda k, v: ["-H", f"{k}: {v}"]),
+                "payload": Once(lambda v: ["-d", f"{json.dumps(v)}"])
             }
         )
         schema = Schema(
@@ -58,7 +58,7 @@ class cli(pipe):
         return self
 
     def post(
-        self, url: str, headers: dict = None, payload: dict = None,
+        self, url: str = None, headers: dict = None, payload: dict = None,
         extra_args: list = []
     ) -> pipe:
         self.__common(locals())

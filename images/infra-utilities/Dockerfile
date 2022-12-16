@@ -4,7 +4,8 @@ ARG TF_VERSION=1.3.5
 ARG TF_DOCS_VERSION=0.16.0
 ARG TF_SEC_VERSION=1.28.1
 
-RUN apk add --update --no-cache git bash curl tar unzip
+RUN apk add --update --no-cache git bash curl tar unzip docker openrc
+RUN rc-update add docker boot
 
 WORKDIR /tmp
 

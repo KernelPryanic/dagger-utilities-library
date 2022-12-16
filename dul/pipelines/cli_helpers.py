@@ -1,7 +1,7 @@
 from dagger.api.gen import Container
 
 from ..common.structlogging import *
-from .generic import get_job_name, get_method_name, get_module_name
+from .generic import get_job_name
 
 log = structlog.get_logger()
 

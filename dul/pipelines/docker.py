@@ -1,11 +1,14 @@
 from enum import Enum
 
+from dagger.api.gen import Client, Container
+
 from .cli_helpers import Flag, Once, Positional, Repeat, Schema, pipe
 
 
 def flag(name): return lambda: [name]
 def once(name): return lambda value: [name, value]
-def repeat(name): return once(name)
+def repeat_list(name): return once(name)
+def repeat_dict(name): return lambda k, v: [name, f"{k}={v}"]
 def positional(): return lambda v: [v]
 
 
@@ -32,7 +35,7 @@ class cli(pipe):
                 "config": Once(once("--config")),
                 "context": Once(once("--context")),
                 "debug": Flag(flag("--debug")),
-                "host": Repeat(repeat("--host")),
+                "host": Repeat(repeat_list("--host")),
                 "log_level": Once(once("--log-level")),
                 "tls": Flag(flag("--tls")),
                 "tlscacert": Once(once("--tlscacert")),
@@ -40,14 +43,14 @@ class cli(pipe):
                 "tlskey": Once(once("--tlskey")),
                 "tlsverify": Flag(flag("--tlsverify")),
                 "version": Flag(flag("--version")),
-                "add_hosts": Repeat(repeat("--add-host")),
-                "build_args": Repeat(repeat("--build-arg")),
-                "cache_from": Repeat(repeat("--cache-from")),
+                "add_hosts": Repeat(repeat_list("--add-host")),
+                "build_args": Repeat(repeat_dict("--build-arg")),
+                "cache_from": Repeat(repeat_list("--cache-from")),
                 "disable_content_trust": Flag(flag("--disable-content-trust")),
                 "file": Once(once("--file")),
                 "iidfile": Once(once("--iidfile")),
                 "isolation": Once(once("--isolation")),
-                "labels": Repeat(repeat("--label")),
+                "labels": Repeat(repeat_list("--label")),
                 "network": Once(once("--network")),
                 "no_cache": Flag(flag("--no-cache")),
                 "output": Once(once("--output")),
@@ -57,7 +60,7 @@ class cli(pipe):
                 "quiet": Flag(flag("--quiet")),
                 "secret": Once(once("--secret")),
                 "ssh": Once(once("--ssh")),
-                "tags": Repeat(repeat("--tag")),
+                "tags": Repeat(repeat_list("--tag")),
                 "target": Once(once("--target")),
                 "all_tags": Flag(flag("--all-tags"))
             }
@@ -66,7 +69,7 @@ class cli(pipe):
             self.schema.process(parameters)
 
     def build(
-        self, add_hosts: list[str] = None, build_args: list[str] = None,
+        self, add_hosts: list[str] = None, build_args: dict = None,
         cache_from: list[str] = None, disable_content_trust: bool = None,
         file: str = None, iidfile: str = None, isolation: str = None,
         labels: list[str] = None, network: str = None, no_cache: bool = None,
@@ -115,3 +118,11 @@ class cli(pipe):
         server: str = None, extra_args: list = []
     ) -> __login:
         return self.__login(self, locals())
+
+    def __call__(self, client: Client, container: Container, root: str = None) -> Container:
+        return pipe.__call__(
+            self, container.with_unix_socket(
+                "/var/run/docker.sock",
+                client.host().unix_socket("/var/run/docker.sock")
+            ), root
+        )
