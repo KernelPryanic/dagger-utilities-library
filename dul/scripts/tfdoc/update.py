@@ -40,7 +40,7 @@ async def docs(path: str, check: bool):
         if not os.path.exists(readme):
             log.error(
                 f"File {readme} doesn't exist",
-                hint=f"Try running {args.command} {path}"
+                hint=f"Try running \"{args.command}\" in {path}"
             )
             raise SystemExit(1)
         else:
@@ -53,7 +53,7 @@ async def docs(path: str, check: bool):
             if current_readme != new_readme:
                 log.error(
                     f"File {readme} doesn't seem to be up-to-date.",
-                    hint=f"Try running {args.command} {path}"
+                    hint=f"Try running \"{args.command}\" in {path}"
                 )
                 raise SystemExit(1)
     else:
