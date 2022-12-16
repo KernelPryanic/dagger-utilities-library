@@ -112,7 +112,7 @@ class scripts(pipe):
 
     def scan(self, directory: str = None, command: pipe = None, extra_args: list = []) -> pipe:
         self.cli = (
-            ["python", "-m", "dul.scripts.terraform.tfsec.scan"] +
+            ["python", "-m", "dul.scripts.tfsec.scan"] +
             extra_args + ["--command", " ".join(command.cli + [directory])] +
             self.schema.process(locals())
         )

@@ -34,7 +34,7 @@ def flag(name): return lambda: [name]
 def once(name): return lambda value: [name, value]
 
 
-def list(name):
+def once_list(name):
     return lambda values: [name, *[getattr(v, "value", v) for v in values]]
 
 
@@ -54,7 +54,7 @@ class cli(pipe):
                 "config": Once(once("--config")),
                 "footer_from": Once(once("--footer-from")),
                 "header_from": Once(once("--header-from")),
-                "hide": Once(list("--hide")),
+                "hide": Once(once_list("--hide")),
                 "lockfile": Flag(flag("--lockfile")),
                 "output_check": Flag(flag("--output-check")),
                 "output_file": Once(once("--output-file")),
@@ -65,7 +65,7 @@ class cli(pipe):
                 "read_comments": Flag(flag("--read-comments")),
                 "recursive": Flag(flag("--recursive")),
                 "recursive_path": Once(once("--recursive-path")),
-                "show": Once(list("--show")),
+                "show": Once(once_list("--show")),
                 "sort": Flag(flag("--sort")),
                 "sort_by": Once(once("--sort-by")),
                 "version": Flag(flag("--version")),
@@ -212,7 +212,7 @@ class scripts(pipe):
         self, check: bool = None, directory: str = None, command: pipe = None, extra_args: list = []
     ) -> pipe:
         self.cli = (
-            ["python", "-m", "dul.scripts.terraform.tfdoc.update"] +
+            ["python", "-m", "dul.scripts.tfdoc.update"] +
             extra_args + ["--command", " ".join(command.cli + [directory])] +
             self.schema.process(locals())
         )
