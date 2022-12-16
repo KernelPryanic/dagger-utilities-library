@@ -26,7 +26,7 @@ class cli(pipe):
                 "no_cache": Flag(flag("--no-cache"))
             }
         )
-        self.cli = ["apk"] + extra_args + self.schema.process(**parameters)
+        self.cli = ["apk"] + extra_args + self.schema.process(parameters)
 
     def __common(
         self, packages: list[str], *args, **kwargs
@@ -40,11 +40,11 @@ class cli(pipe):
             raise DULException(msg)
 
     def install(self, packages: list[str], extra_args: list = []) -> pipe:
-        self.__common(**locals())
-        self.cli += ["add"] + extra_args + self.schema.process(**locals())
+        self.__common(locals())
+        self.cli += ["add"] + extra_args + self.schema.process(locals())
         return self
 
     def uninstall(self, packages: list[str], extra_args: list = []) -> pipe:
-        self.__common(**locals())
-        self.cli += ["del"] + extra_args + self.schema.process(**locals())
+        self.__common(locals())
+        self.cli += ["del"] + extra_args + self.schema.process(locals())
         return self

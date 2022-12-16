@@ -53,7 +53,7 @@ class tflint(pipe):
                 "no_color": Flag(flag("--no-color"))
             }
         )
-        self.cli = ["tflint"] + extra_args + schema.process(**parameters)
+        self.cli = ["tflint"] + extra_args + schema.process(parameters)
 
 
 def install(container: Container, version: str, root: str = None):

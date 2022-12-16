@@ -60,7 +60,7 @@ class cli(pipe):
                 "target": Positional(lambda v: [v])
             }
         )
-        self.cli = ["./pants"] + extra_args + schema.process(**parameters)
+        self.cli = ["./pants"] + extra_args + schema.process(parameters)
 
     def format(self, only: list(Formatter) = None, extra_args: list = []) -> pipe:
         parameters = locals()
@@ -69,7 +69,7 @@ class cli(pipe):
                 "only": Repeat(repeat("--only"))
             }
         )
-        self.cli = ["fmt"] + extra_args + schema.process(**parameters)
+        self.cli = ["fmt"] + extra_args + schema.process(parameters)
         return self
 
     def lint(
@@ -82,7 +82,7 @@ class cli(pipe):
                 "skip_formatters": Once(once("--skip-formatters"))
             }
         )
-        self.cli = ["lint"] + extra_args + schema.process(**parameters)
+        self.cli = ["lint"] + extra_args + schema.process(parameters)
         return self
 
     def package(
@@ -103,7 +103,7 @@ class cli(pipe):
                 "debug_adapter": Once(once("--debug-adapter"))
             }
         )
-        self.cli = ["run"] + extra_args + schema.process(**parameters)
+        self.cli = ["run"] + extra_args + schema.process(parameters)
         return self
 
     def test(
@@ -127,7 +127,7 @@ class cli(pipe):
                 "timeouts": Once(once("--timeouts"))
             }
         )
-        self.cli = ["test"] + extra_args + schema.process(**parameters)
+        self.cli = ["test"] + extra_args + schema.process(parameters)
         return self
 
     def check(
@@ -139,7 +139,7 @@ class cli(pipe):
                 "only": Repeat(repeat("--only"))
             }
         )
-        self.cli = ["check"] + extra_args + schema.process(**parameters)
+        self.cli = ["check"] + extra_args + schema.process(parameters)
         return self
 
 

@@ -65,7 +65,7 @@ class cli(pipe):
                 "recursive": Flag(flag("-recursive"))
             }
         )
-        self.cli = ["terraform"] + extra_args + self.schema.process(**parameters)
+        self.cli = ["terraform"] + extra_args + self.schema.process(parameters)
 
     def init(
         self, backend: bool = None, backend_config: str = None,
@@ -76,13 +76,13 @@ class cli(pipe):
         lockfile: LockfileMode = None, ignore_remote_version: bool = None,
         extra_args: list = []
     ) -> pipe:
-        self.cli += ["init"] + extra_args + self.schema.process(**locals())
+        self.cli += ["init"] + extra_args + self.schema.process(locals())
         return self
 
     def validate(
         self, json: bool = None, no_color: bool = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["validate"] + extra_args + self.schema.process(**locals())
+        self.cli += ["validate"] + extra_args + self.schema.process(locals())
         return self
 
     def plan(
@@ -93,7 +93,7 @@ class cli(pipe):
         lock_timeout: str = None, no_color: bool = None, out: str = None,
         parallelism: int = None, state: str = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["plan"] + extra_args + self.schema.process(**locals())
+        self.cli += ["plan"] + extra_args + self.schema.process(locals())
         return self
 
     def apply(
@@ -103,7 +103,7 @@ class cli(pipe):
         parallelism: int = None, state: str = None, state_out: str = None,
         extra_args: list = []
     ) -> pipe:
-        self.cli += ["apply"] + extra_args + self.schema.process(**locals())
+        self.cli += ["apply"] + extra_args + self.schema.process(locals())
         return self
 
     def destroy(
@@ -113,7 +113,7 @@ class cli(pipe):
         parallelism: int = None, state: str = None, state_out: str = None,
         extra_args: list = []
     ) -> pipe:
-        self.cli += ["destroy"] + extra_args + self.schema.process(**locals())
+        self.cli += ["destroy"] + extra_args + self.schema.process(locals())
         return self
 
     def format(
@@ -121,13 +121,13 @@ class cli(pipe):
         diff: bool = None, check: bool = None, no_color: bool = None,
         recursive: bool = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["format"] + extra_args + self.schema.process(**locals())
+        self.cli += ["format"] + extra_args + self.schema.process(locals())
         return self
 
     def show(
         self, json: bool = None, no_color: bool = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["show"] + extra_args + self.schema.process(**locals())
+        self.cli += ["show"] + extra_args + self.schema.process(locals())
         return self
 
     class __workspace(pipe):
@@ -146,7 +146,7 @@ class cli(pipe):
             lock_timeout: str = None, extra_args: list = []
         ) -> pipe:
             self.cli += ["delete"] + extra_args + \
-                self.schema.process(**locals())
+                self.schema.process(locals())
             return self
 
         def list(self, extra_args: list = []) -> pipe:
@@ -154,7 +154,7 @@ class cli(pipe):
             return self
 
         def new(self, extra_args: list = []) -> pipe:
-            self.cli += ["new"] + extra_args + self.schema.process(**locals())
+            self.cli += ["new"] + extra_args + self.schema.process(locals())
             return self
 
         def select(self, extra_args: list = []) -> pipe:
@@ -168,7 +168,7 @@ class cli(pipe):
     def workspace(
         self, extra_args: list = []
     ) -> __workspace:
-        return self.__workspace(self, **locals())
+        return self.__workspace(self, locals())
 
 
 def install(container: Container, version: str, root: str = None) -> Container:

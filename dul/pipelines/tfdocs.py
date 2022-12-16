@@ -74,7 +74,7 @@ class cli(pipe):
             }
         )
         self.cli = ["terraform-docs"] + extra_args + \
-            self.schema.process(**parameters)
+            self.schema.process(parameters)
 
     class __asciidoc(pipe):
         def __init__(
@@ -95,7 +95,7 @@ class cli(pipe):
                 }
             )
             self.cli = parent.cli + ["asciidoc"] + \
-                extra_args + self.schema.process(**parameters)
+                extra_args + self.schema.process(parameters)
 
         def document(self, extra_args: list = []) -> pipe:
             self.cli += ["document"] + extra_args
@@ -110,10 +110,10 @@ class cli(pipe):
         hide_empty: bool = None, indent: int = None, required: bool = None,
         sensitive: bool = None, type: bool = None, extra_args: list = []
     ) -> __asciidoc:
-        return self.__asciidoc(self, **locals())
+        return self.__asciidoc(self, locals())
 
     def json(self, escape: bool = None, extra_args: list = []) -> pipe:
-        self.cli += ["json"] + extra_args + self.schema.process(**locals())
+        self.cli += ["json"] + extra_args + self.schema.process(locals())
         return self
 
     class __markdown(pipe):
@@ -138,7 +138,7 @@ class cli(pipe):
                 }
             )
             self.cli = parent.cli + ["markdown"] + \
-                extra_args + self.schema.process(**parameters)
+                extra_args + self.schema.process(parameters)
 
         def document(self, extra_args: list = []) -> pipe:
             self.cli += ["document"] + extra_args
@@ -154,10 +154,10 @@ class cli(pipe):
         indent: int = None, required: bool = None, sensitive: bool = None,
         type: bool = None, extra_args: list = []
     ) -> __markdown:
-        return self.__markdown(self, **locals())
+        return self.__markdown(self, locals())
 
     def pretty(self, color: bool = None, extra_args: list = []) -> pipe:
-        self.cli += ["pretty"] + extra_args + self.schema.process(**locals())
+        self.cli += ["pretty"] + extra_args + self.schema.process(locals())
         return self
 
     class __tfvars(pipe):
@@ -184,7 +184,7 @@ class cli(pipe):
         indent: int = None, required: bool = None, sensitive: bool = None,
         type: bool = None, extra_args: list = []
     ) -> __tfvars:
-        return self.__tfvars(self, **locals())
+        return self.__tfvars(self, locals())
 
     def toml(self, extra_args: list = []) -> pipe:
         self.cli += ["toml"] + extra_args
@@ -214,7 +214,7 @@ class scripts(pipe):
         self.cli = (
             ["python", "-m", "dul.scripts.terraform.tfdoc.update"] +
             extra_args + ["--command", " ".join(command.cli + [directory])] +
-            self.schema.process(**locals())
+            self.schema.process(locals())
         )
         return self
 

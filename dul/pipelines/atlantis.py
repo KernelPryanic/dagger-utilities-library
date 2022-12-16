@@ -10,16 +10,20 @@ def flag(name): return lambda: [name]
 def once(name): return lambda value: [name, value]
 
 
-class cli(pipe):
-    def __init__(self, conf: str = None, check: bool = None, extra_args: list = []):
+class scripts(pipe):
+    def __init__(self) -> pipe:
         parameters = locals()
-        schema = Schema(
+        self.schema = Schema(
             {
                 "conf": Once(once("--conf")),
                 "check": Flag(flag("--check"))
             }
         )
+
+    def update_config(self, conf: str = None, check: bool = None, extra_args: list = []) -> pipe:
         self.cli = (
             ["python", "-m", "dul.scripts.atlantis.update_config"] +
-            schema.process(**parameters) + extra_args
+            extra_args +
+            self.schema.process(locals())
         )
+        return self

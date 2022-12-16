@@ -99,7 +99,7 @@ class cli(pipe):
                 "workspace": Once(once("--workspace"))
             }
         )
-        self.cli = ["tfsec"] + schema.process(**parameters) + extra_args
+        self.cli = ["tfsec"] + schema.process(parameters) + extra_args
 
 
 class scripts(pipe):
@@ -114,7 +114,7 @@ class scripts(pipe):
         self.cli = (
             ["python", "-m", "dul.scripts.terraform.tfsec.scan"] +
             extra_args + ["--command", " ".join(command.cli + [directory])] +
-            self.schema.process(**locals())
+            self.schema.process(locals())
         )
         return self
 

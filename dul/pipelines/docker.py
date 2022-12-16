@@ -63,7 +63,7 @@ class cli(pipe):
             }
         )
         self.cli = ["docker"] + extra_args + \
-            self.schema.process(**parameters)
+            self.schema.process(parameters)
 
     def build(
         self, add_hosts: list[str] = None, build_args: list[str] = None,
@@ -74,14 +74,14 @@ class cli(pipe):
         quiet: bool = None, secret: str = None, ssh: str = None, tags: list[str] = None,
         target: str = None, path: str = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["build"] + extra_args + self.schema.process(**locals())
+        self.cli += ["build"] + extra_args + self.schema.process(locals())
         return self
 
     def push(
         self, all_tags: bool = None, disable_content_trust: bool = None,
         quiet: bool = None, name: str = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["push"] + extra_args + self.schema.process(**locals())
+        self.cli += ["push"] + extra_args + self.schema.process(locals())
         return self
 
     class __login(pipe):
@@ -100,18 +100,18 @@ class cli(pipe):
                 }
             )
             self.cli = parent.cli + ["login"] + \
-                kwargs["extra_args"] + self.schema.process(**parameters)
+                kwargs["extra_args"] + self.schema.process(parameters)
 
         def azure(
             self, client_id: str = None, client_secret: str = None, cloud_name: str = None,
             tenant_id: str = None, extra_args: list = []
         ) -> pipe:
             self.cli += ["azure"] + \
-                extra_args + self.schema.process(**locals())
+                extra_args + self.schema.process(locals())
             return self
 
     def login(
         self, username: str = None, password: str = None,
         server: str = None, extra_args: list = []
     ) -> __login:
-        return self.__login(self, **locals())
+        return self.__login(self, locals())

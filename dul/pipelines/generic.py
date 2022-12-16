@@ -41,8 +41,10 @@ def init(
     log.info("Initializing pipeline", job=get_job_name(), image=image_name)
 
     if src_dir is not None:
-        log.info("Mounting source directory", job=get_job_name(),
-                 image=image_name, mount=cnt_mnt_dir)
+        log.info(
+            "Mounting source directory", job=get_job_name(),
+            image=image_name, mount=cnt_mnt_dir
+        )
         pipeline = pipeline.with_mounted_directory(cnt_mnt_dir, src_dir)
 
     return pipeline, cnt_mnt_dir
