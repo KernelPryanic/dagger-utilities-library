@@ -99,27 +99,24 @@ class cli(pipe):
                 "workspace": Once(once("--workspace"))
             }
         )
-        self.cli = ["tfsec"] + schema.process(parameters) + extra_args
+        self.cli = ["tfsec"] + schema.process(**parameters) + extra_args
 
-    class __ext(pipe):
-        def __init__(self, parent: pipe) -> pipe:
-            self.parent = parent
-            self.schema = Schema(
-                {
-                    "target": Positional(lambda v: [v])
-                }
-            )
 
-        def scan(self, target: str = None, extra_args: list = []) -> pipe:
-            self.cli = (
-                ["python", "-m", "dul.scripts.terraform.tfsec.scan"] +
-                extra_args + ["--command", " ".join(self.parent.cli + [target])] +
-                self.schema.process(locals())
-            )
-            return self
+class scripts(pipe):
+    def __init__(self, parent: pipe) -> pipe:
+        self.schema = Schema(
+            {
+                "dir": Positional(lambda v: [v])
+            }
+        )
 
-    def ext(self, parent: pipe) -> __ext:
-        return self.__ext(self, locals())
+    def scan(self, directory: str = None, command: pipe = None, extra_args: list = []) -> pipe:
+        self.cli = (
+            ["python", "-m", "dul.scripts.terraform.tfsec.scan"] +
+            extra_args + ["--command", " ".join(command.cli + [directory])] +
+            self.schema.process(**locals())
+        )
+        return self
 
 
 def install(container: Container, version: str, root: str = None) -> Container:

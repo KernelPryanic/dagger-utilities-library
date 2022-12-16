@@ -21,5 +21,5 @@ class cli(pipe):
         )
         self.cli = (
             ["python", "-m", "dul.scripts.atlantis.update_config"] +
-            schema.process(parameters) + extra_args
+            schema.process(**parameters) + extra_args
         )

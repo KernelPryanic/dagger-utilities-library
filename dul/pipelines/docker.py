@@ -89,7 +89,6 @@ class cli(pipe):
             self, parent: pipe, *args, **kwargs
         ) -> pipe:
             parameters = locals()
-            self.parent = parent
             self.schema = Schema(
                 {
                     "username": Once(once("--username")),

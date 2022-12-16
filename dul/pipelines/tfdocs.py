@@ -45,12 +45,12 @@ class cli(pipe):
         output_file: str = None, output_mode: OutputMode = None, output_template: str = None,
         output_values: bool = None, output_values_from: str = None, read_comments: bool = None,
         recursive: bool = None, recursive_path: str = None, show: list[Section] = None,
-        sort_by: SortCriteria = None, version: bool = None, target: str = None, extra_args: list = []
+        sort_by: SortCriteria = None, version: bool = None, path: str = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
         self.schema = Schema(
             {
-                "target": Positional(lambda v: [v]),
+                "path": Positional(lambda v: [v]),
                 "config": Once(once("--config")),
                 "footer_from": Once(once("--footer-from")),
                 "header_from": Once(once("--header-from")),
@@ -74,7 +74,7 @@ class cli(pipe):
             }
         )
         self.cli = ["terraform-docs"] + extra_args + \
-            self.schema.process(parameters)
+            self.schema.process(**parameters)
 
     class __asciidoc(pipe):
         def __init__(
@@ -95,7 +95,7 @@ class cli(pipe):
                 }
             )
             self.cli = parent.cli + ["asciidoc"] + \
-                extra_args + self.schema.process(parameters)
+                extra_args + self.schema.process(**parameters)
 
         def document(self, extra_args: list = []) -> pipe:
             self.cli += ["document"] + extra_args
@@ -105,11 +105,15 @@ class cli(pipe):
             self.cli += ["table"] + extra_args
             return self
 
-    def asciidoc(self, extra_args: list = []) -> __asciidoc:
-        return self.__asciidoc(self, locals())
+    def asciidoc(
+        self, anchor: bool = None, default: bool = None,
+        hide_empty: bool = None, indent: int = None, required: bool = None,
+        sensitive: bool = None, type: bool = None, extra_args: list = []
+    ) -> __asciidoc:
+        return self.__asciidoc(self, **locals())
 
     def json(self, escape: bool = None, extra_args: list = []) -> pipe:
-        self.cli += ["json"] + extra_args + self.schema.process(locals())
+        self.cli += ["json"] + extra_args + self.schema.process(**locals())
         return self
 
     class __markdown(pipe):
@@ -134,7 +138,7 @@ class cli(pipe):
                 }
             )
             self.cli = parent.cli + ["markdown"] + \
-                extra_args + self.schema.process(parameters)
+                extra_args + self.schema.process(**parameters)
 
         def document(self, extra_args: list = []) -> pipe:
             self.cli += ["document"] + extra_args
@@ -144,11 +148,16 @@ class cli(pipe):
             self.cli += ["table"] + extra_args
             return self
 
-    def markdown(self) -> __markdown:
-        return self.__markdown(self, locals())
+    def markdown(
+        self,  anchor: bool = None, default: bool = None,
+        escape: bool = None, hide_empty: bool = None, html: bool = None,
+        indent: int = None, required: bool = None, sensitive: bool = None,
+        type: bool = None, extra_args: list = []
+    ) -> __markdown:
+        return self.__markdown(self, **locals())
 
     def pretty(self, color: bool = None, extra_args: list = []) -> pipe:
-        self.cli += ["pretty"] + extra_args + self.schema.process(locals())
+        self.cli += ["pretty"] + extra_args + self.schema.process(**locals())
         return self
 
     class __tfvars(pipe):
@@ -169,6 +178,14 @@ class cli(pipe):
             self.cli += ["json"] + extra_args
             return self
 
+    def tfvars(
+        self, anchor: bool = None, default: bool = None,
+        escape: bool = None, hide_empty: bool = None, html: bool = None,
+        indent: int = None, required: bool = None, sensitive: bool = None,
+        type: bool = None, extra_args: list = []
+    ) -> __tfvars:
+        return self.__tfvars(self, **locals())
+
     def toml(self, extra_args: list = []) -> pipe:
         self.cli += ["toml"] + extra_args
         return self
@@ -181,32 +198,31 @@ class cli(pipe):
         self.cli += ["yaml"] + extra_args
         return self
 
-    class __ext(pipe):
-        def __init__(self, parent: pipe) -> pipe:
-            self.parent = parent
-            self.schema = Schema(
-                {
-                    "target": Positional(lambda v: [v]),
-                    "check": Flag(flag("--check"))
-                }
-            )
 
-        def update(self, check: bool = None, target: str = None, extra_args: list = []) -> pipe:
-            self.cli = (
-                ["python", "-m", "dul.scripts.terraform.tfdoc.update"] +
-                extra_args + ["--command", " ".join(self.parent.cli + [target])] +
-                self.schema.process(locals())
-            )
-            return self
+class scripts(pipe):
+    def __init__(self) -> pipe:
+        self.schema = Schema(
+            {
+                "dir": Positional(lambda v: [v]),
+                "check": Flag(flag("--check"))
+            }
+        )
 
-    def ext(self, parent: pipe) -> __ext:
-        return self.__ext(self, locals())
+    def update(
+        self, check: bool = None, directory: str = None, command: pipe = None, extra_args: list = []
+    ) -> pipe:
+        self.cli = (
+            ["python", "-m", "dul.scripts.terraform.tfdoc.update"] +
+            extra_args + ["--command", " ".join(command.cli + [directory])] +
+            self.schema.process(**locals())
+        )
+        return self
 
 
 def install(container: Container, version: str, root: str = None) -> Container:
     return (
         curl.cli(redirect=True, silent=True, show_error=True, output="terraform-docs.tar.gz").
-        get(f"https://terraform-docs.io/dl/v{version}/terraform-docs-v{version}-linux-amd64.tar.gz",)(container, root).
+        get(f"https://terraform-docs.io/dl/v{version}/terraform-docs-v{version}-linux-amd64.tar.gz")(container, root).
         with_exec(["tar", "-xzf", "terraform-docs.tar.gz"]).
         with_exec(["chmod", "+x", "terraform-docs"]).
         with_exec(["mv", "terraform-docs", "/usr/bin/"])
