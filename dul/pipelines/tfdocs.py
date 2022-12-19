@@ -3,7 +3,7 @@ from enum import Enum
 from dagger.api.gen import Container
 
 from . import curl
-from .cli_helpers import Flag, Once, Positional, Schema, pipe
+from .base import Flag, Once, Positional, Schema, pipe
 
 
 class Section(Enum):
@@ -220,10 +220,11 @@ class scripts(pipe):
 
 
 def install(container: Container, version: str, root: str = None) -> Container:
+    binary_name = "terraform-docs"
     return (
-        curl.cli(redirect=True, silent=True, show_error=True, output="terraform-docs.tar.gz").
-        get(f"https://terraform-docs.io/dl/v{version}/terraform-docs-v{version}-linux-amd64.tar.gz")(container, root).
-        with_exec(["tar", "-xzf", "terraform-docs.tar.gz"]).
-        with_exec(["chmod", "+x", "terraform-docs"]).
-        with_exec(["mv", "terraform-docs", "/usr/bin/"])
+        curl.cli(redirect=True, silent=True, show_error=True, output=f"{binary_name}.tar.gz").
+        get(f"https://{binary_name}.io/dl/v{version}/{binary_name}-v{version}-linux-amd64.tar.gz")(container, root).
+        with_exec(["tar", "-xzf", f"{binary_name}.tar.gz"]).
+        with_exec(["chmod", "+x", f"{binary_name}"]).
+        with_exec(["mv", f"{binary_name}", "/usr/local/bin/"])
     )

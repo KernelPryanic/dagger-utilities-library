@@ -1,0 +1,5 @@
+anyio==3.6.*
+azure-core==1.26.*
+azure-identity==1.12.*
+azure-keyvault==4.2.*
+structlog==22.2.*

@@ -2,7 +2,7 @@ from enum import Enum
 
 from dagger.api.gen import Client, Container
 
-from .cli_helpers import Flag, Once, Positional, Repeat, Schema, pipe
+from .base import Flag, Once, Positional, Repeat, Schema, pipe
 
 
 def flag(name): return lambda: [name]

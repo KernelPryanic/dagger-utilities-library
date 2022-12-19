@@ -2,8 +2,8 @@ from os.path import join
 
 from setuptools import find_namespace_packages, setup
 
-with open("requirements.txt") as f:
-    requirements = f.read().splitlines()
+with open(join("dul", "common", "requirements.txt")) as f:
+    common_requirements = f.read().splitlines()
 
 with open(join("dul", "pipelines", "requirements.txt")) as f:
     pipeline_requirements = f.read().splitlines()
@@ -18,7 +18,7 @@ setup(
     author="Daniil Trishkin",
     license="MIT",
     packages=find_namespace_packages(),
-    install_requires=requirements,
+    install_requires=common_requirements,
     extras_require={
         "pipelines": pipeline_requirements,
         "scripts": scripts_requirements,

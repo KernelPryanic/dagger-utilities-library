@@ -4,10 +4,9 @@ Git helper functions in python
 
 import os
 import subprocess
-from typing import List
 
 
-def command_output(cmd: List[str]) -> str:
+def command_output(cmd: list[str]) -> str:
     """Function execute commands and returns the standard output as a list of string.
 
     Args:
@@ -43,7 +42,7 @@ def git_root_dir() -> str:
     return res
 
 
-def git_ls_files(files: List[str] = []) -> List[str]:
+def git_ls_files(files: list[str] = []) -> list[str]:
     """Function to get the list of files in of a git repo
 
     Args:
@@ -60,7 +59,7 @@ def git_ls_files(files: List[str] = []) -> List[str]:
     return res
 
 
-def git_lfs_files() -> List[str]:
+def git_lfs_files() -> list[str]:
     """Function to get the list of LFS files in of a git repo
 
     Returns:
@@ -73,7 +72,7 @@ def git_lfs_files() -> List[str]:
     return res
 
 
-def git_find_files(dir: str = ".", args: List[str] = []) -> List[str]:
+def git_find_files(dir: str = ".", args: list[str] = []) -> list[str]:
     """Function to get the list of intersecting files matching the `find` command and
     `git lf-files`.
 

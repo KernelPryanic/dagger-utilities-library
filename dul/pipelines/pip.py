@@ -2,7 +2,7 @@ import structlog
 
 from ..common.exceptions import DULException
 from ..common.structlogging import *
-from .cli_helpers import Repeat, Schema, pipe
+from .base import Repeat, Schema, pipe
 from .generic import get_job_name, get_method_name
 
 log = structlog.get_logger()

@@ -4,7 +4,7 @@ from dagger.api.gen import Container
 
 from ..common.structlogging import *
 from . import curl
-from .cli_helpers import Flag, Once, Repeat, Schema, pipe
+from .base import Flag, Once, Repeat, Schema, pipe
 
 log = structlog.get_logger()
 

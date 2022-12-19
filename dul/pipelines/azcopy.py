@@ -1,7 +1,9 @@
 from enum import Enum
 
+from dagger.api.gen import Container
+
 from . import curl
-from .cli_helpers import Flag, Once, Positional, Repeat, Schema, pipe
+from .base import Flag, Once, Positional, Repeat, Schema, pipe
 
 
 class Loglevel(Enum):
@@ -63,6 +65,8 @@ class cli(pipe):
         parameters = locals()
         self.schema = Schema(
             {
+                "source": Positional(lambda v: [v]),
+                "destination": Positional(lambda v: [v]),
                 "cap_mbps": Once(once("--cap-mbps")),
                 "log_level": Once(once("--log-level")),
                 "output_level": Once(once("--output-level")),
@@ -192,7 +196,7 @@ class cli(pipe):
         return self
 
     def remove(
-        self, delete_snapshots: SnapshotRemovalType = None, dry_run: bool = None,
+        self, destination: str, delete_snapshots: SnapshotRemovalType = None, dry_run: bool = None,
         exclude_paths: list[str] = None, exclude_patterns: list[str] = None,
         force_if_read_only: bool = None, from_to: str = None, include_after: str = None,
         include_before: str = None, include_paths: list[str] = None,
@@ -202,3 +206,15 @@ class cli(pipe):
     ) -> pipe:
         self.cli += ["remove"] + extra_args + self.schema.process(locals())
         return self
+
+
+def install(container: Container, version: str, root: str = None) -> Container:
+    binary_name = "azcopy"
+    return (
+
+        curl.cli(redirect=True, silent=True, show_error=True, output=f"./{binary_name}.tar.gz").
+        get(f"https://aka.ms/downloadazcopy-{version}-linux")(container, root).
+        with_exec(["tar", "-xzf", f"./{binary_name}.tar.gz"]).
+        with_exec(["chmod", "+x", f"./azcopy_linux_amd64_*/{binary_name}"]).
+        with_exec(["mv", f"./azcopy_linux_amd64_*/{binary_name}", "/usr/local/bin/"])
+    )

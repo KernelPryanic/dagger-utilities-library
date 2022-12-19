@@ -5,7 +5,7 @@ from dagger.api.gen import Container
 
 from ..common.structlogging import *
 from . import curl
-from .cli_helpers import Flag, Once, Positional, Repeat, Schema, pipe
+from .base import Flag, Once, Positional, Repeat, Schema, pipe
 
 log = structlog.get_logger()
 
@@ -60,8 +60,8 @@ def install(container: Container, version: str, root: str = None):
     binary_name = "tflint"
     return (
         curl.cli(redirect=True, silent=True, show_error=True, output="tfsec").
-        get(f"https://github.com/terraform-linters/{binary_name}/releases/download/v{version}/tflint_linux_amd64.zip")(container, root).
+        get(f"https://github.com/terraform-linters/{binary_name}/releases/download/v{version}/{binary_name}_linux_amd64.zip")(container, root).
         with_exec(["unzip", f"{binary_name}.zip"]).
         with_exec(["chmod", "+x", binary_name]).
-        with_exec(["mv", binary_name, "/usr/bin/"])
+        with_exec(["mv", binary_name, "/usr/local/bin/"])
     )

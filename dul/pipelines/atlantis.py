@@ -1,7 +1,7 @@
 import structlog
 
 from ..common.structlogging import *
-from .cli_helpers import Flag, Once, Schema, pipe
+from .base import Flag, Once, Schema, pipe
 
 log = structlog.get_logger()
 

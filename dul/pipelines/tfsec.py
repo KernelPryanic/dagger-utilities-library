@@ -3,7 +3,7 @@ from enum import Enum
 from dagger.api.gen import Container
 
 from . import curl
-from .cli_helpers import Flag, Once, Positional, Repeat, Schema, pipe
+from .base import Flag, Once, Positional, Repeat, Schema, pipe
 
 
 class Theme(Enum):
@@ -120,9 +120,10 @@ class scripts(pipe):
 
 
 def install(container: Container, version: str, root: str = None) -> Container:
+    binary_name = "tfsec"
     return (
-        curl.cli(redirect=True, silent=True, show_error=True, output="tfsec").
-        get(f"https://github.com/aquasecurity/tfsec/releases/download/v{version}/tfsec-linux-amd64")(container, root).
-        with_exec(["chmod", "+x", "tfsec"]).
-        with_exec(["mv", "tfsec", "/usr/local/bin/"])
+        curl.cli(redirect=True, silent=True, show_error=True, output=f"{binary_name}").
+        get(f"https://github.com/aquasecurity/{binary_name}/releases/download/v{version}/{binary_name}-linux-amd64")(container, root).
+        with_exec(["chmod", "+x", f"{binary_name}"]).
+        with_exec(["mv", f"{binary_name}", "/usr/local/bin/"])
     )

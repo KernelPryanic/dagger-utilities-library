@@ -1,6 +1,6 @@
 from enum import Enum
 
-from .cli_helpers import Flag, Once, Positional, Schema, pipe
+from .base import Flag, Once, Positional, Schema, pipe
 
 
 class Theme(Enum):
