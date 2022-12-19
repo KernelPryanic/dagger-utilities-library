@@ -139,8 +139,8 @@ class cli(pipe):
                 "permanent_delete": Once(once("--permanent-delete"))
             }
         )
-        self.cli = ["azcopy"] + extra_args + \
-            self.schema.process(parameters)
+        self.cli = ["azcopy"] + \
+            self.schema.process(parameters) + extra_args
 
     def login(
         self, aad_endpoint: str = None, application_id: str = None, certificate_path: str = None,
@@ -148,7 +148,7 @@ class cli(pipe):
         identity_resource_id: str = None, service_principal: bool = None, tenant_id: str = None,
         extra_args: list = []
     ) -> pipe:
-        self.cli += ["login"] + extra_args + self.schema.process(locals())
+        self.cli += ["login"] + self.schema.process(locals()) + extra_args
         return self
 
     def copy(
@@ -176,7 +176,7 @@ class cli(pipe):
         s2s_preserve_blob_tags: bool = None, s2s_preserve_properties: bool = None,
         extra_args: list = []
     ) -> pipe:
-        self.cli += ["copy"] + extra_args + self.schema.process(locals())
+        self.cli += ["copy"] + self.schema.process(locals()) + extra_args
         return self
 
     def sync(
@@ -192,7 +192,7 @@ class cli(pipe):
         s2s_preserve_access_tier: bool = None, s2s_preserve_blob_tags: bool = None,
         extra_args: list = []
     ) -> pipe:
-        self.cli += ["sync"] + extra_args + self.schema.process(locals())
+        self.cli += ["sync"] + self.schema.process(locals()) + extra_args
         return self
 
     def remove(
@@ -204,7 +204,7 @@ class cli(pipe):
         list_of_versions: str = None, permanent_delete: bool = None, recursive: bool = None,
         extra_args: list = []
     ) -> pipe:
-        self.cli += ["remove"] + extra_args + self.schema.process(locals())
+        self.cli += ["remove"] + self.schema.process(locals()) + extra_args
         return self
 
 
@@ -216,5 +216,6 @@ def install(container: Container, version: str, root: str = None) -> Container:
         get(f"https://aka.ms/downloadazcopy-{version}-linux")(container, root).
         with_exec(["tar", "-xzf", f"./{binary_name}.tar.gz"]).
         with_exec(["chmod", "+x", f"./azcopy_linux_amd64_*/{binary_name}"]).
-        with_exec(["mv", f"./azcopy_linux_amd64_*/{binary_name}", "/usr/local/bin/"])
+        with_exec(
+            ["mv", f"./azcopy_linux_amd64_*/{binary_name}", "/usr/local/bin/"])
     )

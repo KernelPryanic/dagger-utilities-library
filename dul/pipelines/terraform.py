@@ -2,11 +2,8 @@ from enum import Enum
 
 from dagger.api.gen import Container
 
-from ..common.structlogging import *
 from . import curl
-from .base import Flag, Once, Repeat, Schema, pipe
-
-log = structlog.get_logger()
+from .base import Flag, Once, Positional, Schema, pipe
 
 
 class LockfileMode(Enum):
@@ -24,6 +21,7 @@ class cli(pipe):
         parameters = locals()
         self.schema = Schema(
             {
+                "path": Positional(lambda v: [v]),
                 "version": Flag(flag("-version")),
                 "chdir": Once(once("-chdir")),
                 "no_color": Flag(flag("-no-color")),
@@ -65,7 +63,7 @@ class cli(pipe):
                 "recursive": Flag(flag("-recursive"))
             }
         )
-        self.cli = ["terraform"] + extra_args + self.schema.process(parameters)
+        self.cli = ["terraform"] + self.schema.process(parameters) + extra_args
 
     def init(
         self, backend: bool = None, backend_config: str = None,
@@ -76,13 +74,13 @@ class cli(pipe):
         lockfile: LockfileMode = None, ignore_remote_version: bool = None,
         extra_args: list = []
     ) -> pipe:
-        self.cli += ["init"] + extra_args + self.schema.process(locals())
+        self.cli += ["init"] + self.schema.process(locals()) + extra_args
         return self
 
     def validate(
         self, json: bool = None, no_color: bool = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["validate"] + extra_args + self.schema.process(locals())
+        self.cli += ["validate"] + self.schema.process(locals()) + extra_args
         return self
 
     def plan(
@@ -93,7 +91,7 @@ class cli(pipe):
         lock_timeout: str = None, no_color: bool = None, out: str = None,
         parallelism: int = None, state: str = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["plan"] + extra_args + self.schema.process(locals())
+        self.cli += ["plan"] + self.schema.process(locals()) + extra_args
         return self
 
     def apply(
@@ -103,7 +101,7 @@ class cli(pipe):
         parallelism: int = None, state: str = None, state_out: str = None,
         extra_args: list = []
     ) -> pipe:
-        self.cli += ["apply"] + extra_args + self.schema.process(locals())
+        self.cli += ["apply"] + self.schema.process(locals()) + extra_args
         return self
 
     def destroy(
@@ -113,27 +111,28 @@ class cli(pipe):
         parallelism: int = None, state: str = None, state_out: str = None,
         extra_args: list = []
     ) -> pipe:
-        self.cli += ["destroy"] + extra_args + self.schema.process(locals())
+        self.cli += ["destroy"] + self.schema.process(locals()) + extra_args
         return self
 
     def format(
-        self, list: bool = None, write: bool = None,
+        self, path: str = None, list: bool = None, write: bool = None,
         diff: bool = None, check: bool = None, no_color: bool = None,
         recursive: bool = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["format"] + extra_args + self.schema.process(locals())
+        self.cli += ["format"] + self.schema.process(locals()) + extra_args
         return self
 
     def show(
-        self, json: bool = None, no_color: bool = None, extra_args: list = []
+        self, path: str = None, json: bool = None, no_color: bool = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["show"] + extra_args + self.schema.process(locals())
+        self.cli += ["show"] + self.schema.process(locals()) + extra_args
         return self
 
     class __workspace(pipe):
         def __init__(self, parent: pipe, extra_args: list = []) -> pipe:
             self.parent = parent
             self.schema = {
+                "name": Positional(lambda v: [v]),
                 "force": Flag(flag("-force")),
                 "lock": Once(once("-lock")),
                 "lock_timeout": Once(once("-lock-timeout")),
@@ -145,20 +144,23 @@ class cli(pipe):
             self, force: bool = None, lock: bool = None,
             lock_timeout: str = None, extra_args: list = []
         ) -> pipe:
-            self.cli += ["delete"] + extra_args + \
-                self.schema.process(locals())
+            self.cli += ["delete"] + \
+                self.schema.process(locals()) + extra_args
             return self
 
         def list(self, extra_args: list = []) -> pipe:
             self.cli += ["list"] + extra_args
             return self
 
-        def new(self, extra_args: list = []) -> pipe:
-            self.cli += ["new"] + extra_args + self.schema.process(locals())
+        def new(
+            self, name: str, lock: bool = None, lock_timeout: str = None,
+            state: str = None, extra_args: list = []
+        ) -> pipe:
+            self.cli += ["new"] + self.schema.process(locals()) + extra_args
             return self
 
-        def select(self, extra_args: list = []) -> pipe:
-            self.cli += ["select"] + extra_args
+        def select(self, name: str, extra_args: list = []) -> pipe:
+            self.cli += ["select"] + self.schema.process(locals()) + extra_args
             return self
 
         def show(self, extra_args: list = []) -> pipe:
@@ -172,10 +174,11 @@ class cli(pipe):
 
 
 def install(container: Container, version: str, root: str = None) -> Container:
+    binary_name = "terraform"
     return (
-        curl.cli(redirect=True, silent=True, show_error=True, output="./pants").
-        get(f"https://releases.hashicorp.com/terraform/{version}/terraform_{version}_linux_amd64.zip")(container, root).
-        with_exec(["unzip", "terraform.zip"]).
-        with_exec(["chmod", "+x", "terraform"]).
-        with_exec(["mv", "terraform", "/usr/local/bin/"])
+        curl.cli(redirect=True, silent=True, show_error=True, output=f"./{binary_name}.zip").
+        get(f"https://releases.hashicorp.com/{binary_name}/{version}/terraform_{version}_linux_amd64.zip")(container, root).
+        with_exec(["unzip", f"{binary_name}.zip"]).
+        with_exec(["chmod", "+x", f"{binary_name}"]).
+        with_exec(["mv", f"{binary_name}", "/usr/local/bin/"])
     )

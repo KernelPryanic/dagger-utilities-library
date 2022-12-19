@@ -65,35 +65,37 @@ class cli(pipe):
                 "all_tags": Flag(flag("--all-tags"))
             }
         )
-        self.cli = ["docker"] + extra_args + \
-            self.schema.process(parameters)
+        self.cli = ["docker"] + \
+            self.schema.process(parameters) + extra_args
 
     def build(
-        self, add_hosts: list[str] = None, build_args: dict = None,
+        self, path: str, add_hosts: list[str] = None, build_args: dict = None,
         cache_from: list[str] = None, disable_content_trust: bool = None,
         file: str = None, iidfile: str = None, isolation: str = None,
         labels: list[str] = None, network: str = None, no_cache: bool = None,
         output: str = None, platform: str = None, progress: str = None, pull: bool = None,
         quiet: bool = None, secret: str = None, ssh: str = None, tags: list[str] = None,
-        target: str = None, path: str = None, extra_args: list = []
+        target: str = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["build"] + extra_args + self.schema.process(locals())
+        self.cli += ["build"] + self.schema.process(locals()) + extra_args
         return self
 
     def push(
-        self, all_tags: bool = None, disable_content_trust: bool = None,
-        quiet: bool = None, name: str = None, extra_args: list = []
+        self, name: str, all_tags: bool = None, disable_content_trust: bool = None,
+        quiet: bool = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["push"] + extra_args + self.schema.process(locals())
+        self.cli += ["push"] + self.schema.process(locals()) + extra_args
         return self
 
     class __login(pipe):
         def __init__(
-            self, parent: pipe, *args, **kwargs
+            self, parent: pipe, username: str = None, password: str = None,
+            server: str = None, extra_args: list = []
         ) -> pipe:
             parameters = locals()
             self.schema = Schema(
                 {
+                    "server": Positional(lambda v: [v]),
                     "username": Once(once("--username")),
                     "password": Once(once("--password")),
                     "client_id": Once(once("--client-id")),
@@ -103,19 +105,19 @@ class cli(pipe):
                 }
             )
             self.cli = parent.cli + ["login"] + \
-                kwargs["extra_args"] + self.schema.process(parameters)
+                extra_args + self.schema.process(parameters)
 
         def azure(
-            self, client_id: str = None, client_secret: str = None, cloud_name: str = None,
-            tenant_id: str = None, extra_args: list = []
+            self, client_id: str, client_secret: str, tenant_id: str,
+            cloud_name: str = None, extra_args: list = []
         ) -> pipe:
             self.cli += ["azure"] + \
-                extra_args + self.schema.process(locals())
+                self.schema.process(locals()) + extra_args
             return self
 
     def login(
-        self, username: str = None, password: str = None,
-        server: str = None, extra_args: list = []
+        self, server: str = None, username: str = None, password: str = None,
+        extra_args: list = []
     ) -> __login:
         return self.__login(self, locals())
 

@@ -20,7 +20,7 @@ class cli(pipe):
         parameters = locals()
         self.schema = Schema(
             {
-                "target": Positional(lambda v: [v]),
+                "project_directory": Positional(lambda v: [v]),
                 "version": Flag(flag("--version")),
                 "quiet": Flag(flag("--quiet")),
                 "verbose": Flag(flag("--verbose")),
@@ -41,15 +41,15 @@ class cli(pipe):
                 "shell": Flag(flag("--shell"))
             }
         )
-        self.cli = ["mkdocs"] + extra_args + \
-            self.schema.process(parameters)
+        self.cli = ["mkdocs"] + \
+            self.schema.process(parameters) + extra_args
 
     def build(
         self, clean: bool = None, dirty: bool = None, config_file: str = None,
         strict: bool = None, theme: Theme = None, use_directory_urls: bool = None,
         no_directory_urls: bool = None, site_dir: str = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["build"] + extra_args + self.schema.process(locals())
+        self.cli += ["build"] + self.schema.process(locals()) + extra_args
         return self
 
     def gh_deploy(
@@ -60,9 +60,9 @@ class cli(pipe):
         use_directory_urls: bool = None, no_directory_urls: bool = None,
         site_dir: str = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["gh-deploy"] + extra_args + self.schema.process(locals())
+        self.cli += ["gh-deploy"] + self.schema.process(locals()) + extra_args
         return self
 
-    def new(self, target: str = None, extra_args: list = []) -> pipe:
-        self.cli += ["new"] + extra_args + self.schema.process(locals())
+    def new(self, project_directory: str, extra_args: list = []) -> pipe:
+        self.cli += ["new"] + self.schema.process(locals()) + extra_args
         return self

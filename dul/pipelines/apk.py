@@ -26,7 +26,7 @@ class cli(pipe):
                 "no_cache": Flag(flag("--no-cache"))
             }
         )
-        self.cli = ["apk"] + extra_args + self.schema.process(parameters)
+        self.cli = ["apk"] + self.schema.process(parameters) + extra_args
 
     def __common(
         self, packages: list[str], *args, **kwargs
@@ -41,10 +41,10 @@ class cli(pipe):
 
     def install(self, packages: list[str], extra_args: list = []) -> pipe:
         self.__common(locals())
-        self.cli += ["add"] + extra_args + self.schema.process(locals())
+        self.cli += ["add"] + self.schema.process(locals()) + extra_args
         return self
 
     def uninstall(self, packages: list[str], extra_args: list = []) -> pipe:
         self.__common(locals())
-        self.cli += ["del"] + extra_args + self.schema.process(locals())
+        self.cli += ["del"] + self.schema.process(locals()) + extra_args
         return self

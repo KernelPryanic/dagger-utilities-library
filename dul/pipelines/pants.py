@@ -1,13 +1,9 @@
 from enum import Enum
 
-import structlog
 from dagger.api.gen import Container
 
-from ..common.structlogging import *
 from . import curl
 from .base import Once, Positional, Repeat, Schema, pipe
-
-log = structlog.get_logger()
 
 
 class Formatter(Enum):
@@ -60,7 +56,7 @@ class cli(pipe):
                 "target": Positional(lambda v: [v])
             }
         )
-        self.cli = ["./pants"] + extra_args + schema.process(parameters)
+        self.cli = ["./pants"] + schema.process(parameters) + extra_args
 
     def format(self, only: list(Formatter) = None, extra_args: list = []) -> pipe:
         parameters = locals()
@@ -69,7 +65,7 @@ class cli(pipe):
                 "only": Repeat(repeat("--only"))
             }
         )
-        self.cli = ["fmt"] + extra_args + schema.process(parameters)
+        self.cli = ["fmt"] + schema.process(parameters) + extra_args
         return self
 
     def lint(
@@ -82,7 +78,7 @@ class cli(pipe):
                 "skip_formatters": Once(once("--skip-formatters"))
             }
         )
-        self.cli = ["lint"] + extra_args + schema.process(parameters)
+        self.cli = ["lint"] + schema.process(parameters) + extra_args
         return self
 
     def package(
@@ -103,7 +99,7 @@ class cli(pipe):
                 "debug_adapter": Once(once("--debug-adapter"))
             }
         )
-        self.cli = ["run"] + extra_args + schema.process(parameters)
+        self.cli = ["run"] + schema.process(parameters) + extra_args
         return self
 
     def test(
@@ -127,7 +123,7 @@ class cli(pipe):
                 "timeouts": Once(once("--timeouts"))
             }
         )
-        self.cli = ["test"] + extra_args + schema.process(parameters)
+        self.cli = ["test"] + schema.process(parameters) + extra_args
         return self
 
     def check(
@@ -139,7 +135,7 @@ class cli(pipe):
                 "only": Repeat(repeat("--only"))
             }
         )
-        self.cli = ["check"] + extra_args + schema.process(parameters)
+        self.cli = ["check"] + schema.process(parameters) + extra_args
         return self
 
 

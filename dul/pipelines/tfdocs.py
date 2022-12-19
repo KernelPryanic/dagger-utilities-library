@@ -40,12 +40,12 @@ def once_list(name):
 
 class cli(pipe):
     def __init__(
-        self, config: str = None, footer_from: str = None, header_from: str = None,
+        self, path: str, config: str = None, footer_from: str = None, header_from: str = None,
         hide: list[Section] = None, lockfile: bool = None, output_check: bool = None,
         output_file: str = None, output_mode: OutputMode = None, output_template: str = None,
         output_values: bool = None, output_values_from: str = None, read_comments: bool = None,
         recursive: bool = None, recursive_path: str = None, show: list[Section] = None,
-        sort_by: SortCriteria = None, version: bool = None, path: str = None, extra_args: list = []
+        sort_by: SortCriteria = None, version: bool = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
         self.schema = Schema(
@@ -73,8 +73,8 @@ class cli(pipe):
                 "color": Flag(flag("--color"))
             }
         )
-        self.cli = ["terraform-docs"] + extra_args + \
-            self.schema.process(parameters)
+        self.cli = ["terraform-docs"] + \
+            self.schema.process(parameters) + extra_args
 
     class __asciidoc(pipe):
         def __init__(
@@ -113,7 +113,7 @@ class cli(pipe):
         return self.__asciidoc(self, locals())
 
     def json(self, escape: bool = None, extra_args: list = []) -> pipe:
-        self.cli += ["json"] + extra_args + self.schema.process(locals())
+        self.cli += ["json"] + self.schema.process(locals()) + extra_args
         return self
 
     class __markdown(pipe):
@@ -157,7 +157,7 @@ class cli(pipe):
         return self.__markdown(self, locals())
 
     def pretty(self, color: bool = None, extra_args: list = []) -> pipe:
-        self.cli += ["pretty"] + extra_args + self.schema.process(locals())
+        self.cli += ["pretty"] + self.schema.process(locals()) + extra_args
         return self
 
     class __tfvars(pipe):
@@ -203,17 +203,17 @@ class scripts(pipe):
     def __init__(self) -> pipe:
         self.schema = Schema(
             {
-                "dir": Positional(lambda v: [v]),
+                "directory": Positional(lambda v: [v]),
                 "check": Flag(flag("--check"))
             }
         )
 
     def update(
-        self, check: bool = None, directory: str = None, command: pipe = None, extra_args: list = []
+        self, directory: str, check: bool = None, command: pipe = None, extra_args: list = []
     ) -> pipe:
         self.cli = (
             ["python", "-m", "dul.scripts.tfdoc.update"] +
-            extra_args + ["--command", " ".join(command.cli + [directory])] +
+            extra_args + ["--command", " ".join(command.cli)] +
             self.schema.process(locals())
         )
         return self

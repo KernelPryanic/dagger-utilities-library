@@ -36,13 +36,13 @@ def once(name): return lambda value: [name, value]
 def repeat(name): return once(name)
 
 
-def list(name):
+def repeat_comma(name):
     return lambda value: [name, ",".join([getattr(v, "value", v) for v in value])]
 
 
 class cli(pipe):
     def __init__(
-        self, target: str = None, code_theme: Theme = None, concise_output: bool = None,
+        self, path: str, code_theme: Theme = None, concise_output: bool = None,
         config_file: str = None, config_file_url: str = None, custom_check_dir: str = None,
         custom_check_url: str = None, debug: bool = None, disable_grouping: bool = None,
         exclude: list[str] = None, exclude_downloaded_modules: bool = None,
@@ -60,7 +60,7 @@ class cli(pipe):
         parameters = locals()
         schema = Schema(
             {
-                "target": Positional(lambda v: v),
+                "path": Positional(lambda v: v),
                 "code_theme": Once(once("--code-theme")),
                 "concise_output": Flag(flag("--concise-output")),
                 "config_file": Once(once("--config-file")),
@@ -69,13 +69,13 @@ class cli(pipe):
                 "custom_check_url": Once(once("--custom-check-url")),
                 "debug": Flag(flag("--debug")),
                 "disable_grouping": Flag(flag("--disable-grouping")),
-                "exclude": Once(list("--exclude")),
+                "exclude": Once(repeat_comma("--exclude")),
                 "exclude_downloaded_modules": Flag(flag("--exclude-downloaded-modules")),
-                "exclude_ignores": Once(list("--exclude-ignores")),
+                "exclude_ignores": Once(repeat_comma("--exclude-ignores")),
                 "exclude_paths": Repeat(repeat("--exclude-path")),
-                "filter_results": Once(list("--filter-results")),
+                "filter_results": Once(repeat_comma("--filter-results")),
                 "force_all_dirs": Flag(flag("--force-all-dirs")),
-                "format": Once(list("--format")),
+                "format": Once(repeat_comma("--format")),
                 "ignore_hcl_errors": Flag(flag("--ignore-hcl-errors")),
                 "include_ignored": Flag(flag("--include-ignored")),
                 "include_passed": Flag(flag("--include-passed")),
@@ -106,15 +106,15 @@ class scripts(pipe):
     def __init__(self, parent: pipe) -> pipe:
         self.schema = Schema(
             {
-                "dir": Positional(lambda v: [v])
+                "directory": Positional(lambda v: [v])
             }
         )
 
-    def scan(self, directory: str = None, command: pipe = None, extra_args: list = []) -> pipe:
+    def scan(self, directory: str, command: pipe = None, extra_args: list = []) -> pipe:
         self.cli = (
             ["python", "-m", "dul.scripts.tfsec.scan"] +
-            extra_args + ["--command", " ".join(command.cli + [directory])] +
-            self.schema.process(locals())
+            ["--command", " ".join(command.cli)] +
+            self.schema.process(locals()) + extra_args
         )
         return self
 

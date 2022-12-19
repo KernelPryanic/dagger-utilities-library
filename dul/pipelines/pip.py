@@ -33,10 +33,10 @@ class cli(pipe):
 
     def install(self, packages: list[str], extra_args: list = []) -> pipe:
         self.__common__(locals())
-        self.cli += ["install"] + extra_args + self.schema.process(locals())
+        self.cli += ["install"] + self.schema.process(locals()) + extra_args
         return self
 
     def uninstall(self, packages: list[str], extra_args: list = []) -> pipe:
         self.__common__(locals())
-        self.cli += ["uninstall"] + extra_args + self.schema.process(locals())
+        self.cli += ["uninstall"] + self.schema.process(locals()) + extra_args
         return self

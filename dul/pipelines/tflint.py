@@ -26,16 +26,15 @@ def repeat(name): return once(name)
 
 class tflint(pipe):
     def __init__(
-        self, version: bool = None, init: bool = None, format: Format = None,
+        self, path: str, version: bool = None, init: bool = None, format: Format = None,
         config: str = None, ignore_module: str = None, enable_rule: str = None,
         disable_rule: str = None, only: list[str] = None, enable_plugin: str = None,
         var_file: str = None, vars: dict = None, module: bool = None, force: bool = None,
-        color: bool = None, no_color: bool = None, target: str = None, extra_args: list = []
+        color: bool = None, no_color: bool = None, extra_args: list = []
     ) -> pipe:
         parameters = locals()
         schema = Schema(
             {
-                "target": Positional(lambda v: [v]),
                 "version": Flag(flag("-v")),
                 "init": Flag(flag("--init")),
                 "format": Once(once("-f")),
@@ -50,10 +49,11 @@ class tflint(pipe):
                 "module": Flag(flag("--module")),
                 "force": Flag(flag("--force")),
                 "color": Flag(flag("--color")),
-                "no_color": Flag(flag("--no-color"))
+                "no_color": Flag(flag("--no-color")),
+                "path": Positional(lambda v: [v])
             }
         )
-        self.cli = ["tflint"] + extra_args + schema.process(parameters)
+        self.cli = ["tflint"] + schema.process(parameters) + extra_args
 
 
 def install(container: Container, version: str, root: str = None):

@@ -41,9 +41,9 @@ class Schema(dict):
 
     def process(self, variables: dict) -> list:
         args = []
-        for var_name, var_value in variables.items():
+        for var_name, arg in self.items():
+            var_value = variables.get(var_name)
             if var_value is not None:
-                arg: Argument = self.get(var_name)
                 arg_val = getattr(var_value, "value", var_value)
                 match arg:
                     case Flag():
