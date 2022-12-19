@@ -53,7 +53,9 @@ class cli(pipe):
         self, url: str, headers: dict = None, payload: dict = None,
         extra_args: list = []
     ) -> pipe:
-        self.__common(locals())
+        parameters = locals()
+        parameters.pop("self")
+        self.__common(**parameters)
         self.cli += ["-X", "GET"] + self.schema.process(locals()) + extra_args
         return self
 
@@ -61,7 +63,9 @@ class cli(pipe):
         self, url: str = None, headers: dict = None, payload: dict = None,
         extra_args: list = []
     ) -> pipe:
-        self.__common(locals())
+        parameters = locals()
+        parameters.pop("self")
+        self.__common(**parameters)
         self.cli += ["-X", "POST"] + self.schema.process(locals()) + extra_args
         return self
 
@@ -69,7 +73,9 @@ class cli(pipe):
         self, url: str, headers: dict = None, payload: dict = None,
         extra_args: list = []
     ) -> pipe:
-        self.__common(locals())
+        parameters = locals()
+        parameters.pop("self")
+        self.__common(**parameters)
         self.cli += ["-X", "PUT"] + self.schema.process(locals()) + extra_args
         return self
 
@@ -77,7 +83,9 @@ class cli(pipe):
         self, url: str, headers: dict = None, payload: dict = None,
         extra_args: list = []
     ) -> pipe:
-        self.__common(locals())
+        parameters = locals()
+        parameters.pop("self")
+        self.__common(**parameters)
         self.cli += ["-X", "PATCH"] + \
             self.schema.process(locals()) + extra_args
         return self
@@ -86,7 +94,9 @@ class cli(pipe):
         self, url: str, headers: dict = None, payload: dict = None,
         extra_args: list = []
     ) -> pipe:
-        self.__common(locals())
+        parameters = locals()
+        parameters.pop("self")
+        self.__common(**parameters)
         self.cli += ["-X", "DELETE"] + \
             self.schema.process(locals()) + extra_args
         return self

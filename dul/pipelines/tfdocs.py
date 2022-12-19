@@ -40,7 +40,7 @@ def once_list(name):
 
 class cli(pipe):
     def __init__(
-        self, path: str, config: str = None, footer_from: str = None, header_from: str = None,
+        self, config: str = None, footer_from: str = None, header_from: str = None,
         hide: list[Section] = None, lockfile: bool = None, output_check: bool = None,
         output_file: str = None, output_mode: OutputMode = None, output_template: str = None,
         output_values: bool = None, output_values_from: str = None, read_comments: bool = None,
@@ -85,6 +85,7 @@ class cli(pipe):
             parameters = locals()
             self.schema = Schema(
                 {
+                    "path": Positional(lambda v: [v]),
                     "anchor": Flag(flag("--anchor")),
                     "default": Flag(flag("--default")),
                     "hide_empty": Flag(flag("--hide-empty")),
@@ -95,14 +96,15 @@ class cli(pipe):
                 }
             )
             self.cli = parent.cli + ["asciidoc"] + \
-                extra_args + self.schema.process(parameters)
+                self.schema.process(parameters) + extra_args
 
-        def document(self, extra_args: list = []) -> pipe:
-            self.cli += ["document"] + extra_args
+        def document(self, path: str, extra_args: list = []) -> pipe:
+            self.cli += ["document"] + \
+                self.schema.process(locals()) + extra_args
             return self
 
-        def table(self, extra_args: list = []) -> pipe:
-            self.cli += ["table"] + extra_args
+        def table(self, path: str, extra_args: list = []) -> pipe:
+            self.cli += ["table"] + self.schema.process(locals()) + extra_args
             return self
 
     def asciidoc(
@@ -110,9 +112,11 @@ class cli(pipe):
         hide_empty: bool = None, indent: int = None, required: bool = None,
         sensitive: bool = None, type: bool = None, extra_args: list = []
     ) -> __asciidoc:
-        return self.__asciidoc(self, locals())
+        parameters = locals()
+        parameters.pop("self")
+        return self.__asciidoc(self, **parameters)
 
-    def json(self, escape: bool = None, extra_args: list = []) -> pipe:
+    def json(self, path: str, escape: bool = None, extra_args: list = []) -> pipe:
         self.cli += ["json"] + self.schema.process(locals()) + extra_args
         return self
 
@@ -126,6 +130,7 @@ class cli(pipe):
             parameters = locals()
             self.schema = Schema(
                 {
+                    "path": Positional(lambda v: [v]),
                     "anchor": Flag(flag("--anchor")),
                     "default": Flag(flag("--default")),
                     "escape": Flag(flag("--escape")),
@@ -140,12 +145,13 @@ class cli(pipe):
             self.cli = parent.cli + ["markdown"] + \
                 extra_args + self.schema.process(parameters)
 
-        def document(self, extra_args: list = []) -> pipe:
-            self.cli += ["document"] + extra_args
+        def document(self, path: str, extra_args: list = []) -> pipe:
+            self.cli += ["document"] + \
+                self.schema.process(locals()) + extra_args
             return self
 
-        def table(self, extra_args: list = []) -> pipe:
-            self.cli += ["table"] + extra_args
+        def table(self, path: str, extra_args: list = []) -> pipe:
+            self.cli += ["table"] + self.schema.process(locals()) + extra_args
             return self
 
     def markdown(
@@ -154,28 +160,33 @@ class cli(pipe):
         indent: int = None, required: bool = None, sensitive: bool = None,
         type: bool = None, extra_args: list = []
     ) -> __markdown:
-        return self.__markdown(self, locals())
+        parameters = locals()
+        parameters.pop("self")
+        return self.__markdown(self, **parameters)
 
-    def pretty(self, color: bool = None, extra_args: list = []) -> pipe:
+    def pretty(self, path: str, color: bool = None, extra_args: list = []) -> pipe:
         self.cli += ["pretty"] + self.schema.process(locals()) + extra_args
         return self
 
     class __tfvars(pipe):
         def __init__(
-            self, parent: pipe, anchor: bool = None, default: bool = None,
-            escape: bool = None, hide_empty: bool = None, html: bool = None,
-            indent: int = None, required: bool = None, sensitive: bool = None,
-            type: bool = None, extra_args: list = []
+            self, parent: pipe, extra_args: list = []
         ) -> pipe:
+            parameters = locals()
+            self.schema = Schema(
+                {
+                    "path": Positional(lambda v: [v])
+                }
+            )
             self.cli = parent.cli + ["tfvars"] + \
-                extra_args + self.schema.process(locals())
+                self.schema.process(parameters) + extra_args
 
-        def hcl(self, extra_args: list = []) -> pipe:
-            self.cli += ["hcl"] + extra_args
+        def hcl(self, path: str, extra_args: list = []) -> pipe:
+            self.cli += ["hcl"] + self.schema.process(locals()) + extra_args
             return self
 
-        def json(self, extra_args: list = []) -> pipe:
-            self.cli += ["json"] + extra_args
+        def json(self, path: str, extra_args: list = []) -> pipe:
+            self.cli += ["json"] + self.schema.process(locals()) + extra_args
             return self
 
     def tfvars(
@@ -184,18 +195,20 @@ class cli(pipe):
         indent: int = None, required: bool = None, sensitive: bool = None,
         type: bool = None, extra_args: list = []
     ) -> __tfvars:
-        return self.__tfvars(self, locals())
+        parameters = locals()
+        parameters.pop("self")
+        return self.__tfvars(self, **parameters)
 
-    def toml(self, extra_args: list = []) -> pipe:
-        self.cli += ["toml"] + extra_args
+    def toml(self, path: str, extra_args: list = []) -> pipe:
+        self.cli += ["toml"] + self.schema.process(locals()) + extra_args
         return self
 
-    def xml(self, extra_args: list = []) -> pipe:
-        self.cli += ["xml"] + extra_args
+    def xml(self, path: str, extra_args: list = []) -> pipe:
+        self.cli += ["xml"] + self.schema.process(locals()) + extra_args
         return self
 
-    def yaml(self, extra_args: list = []) -> pipe:
-        self.cli += ["yaml"] + extra_args
+    def yaml(self, path: str, extra_args: list = []) -> pipe:
+        self.cli += ["yaml"] + self.schema.process(locals()) + extra_args
         return self
 
 
@@ -213,8 +226,8 @@ class scripts(pipe):
     ) -> pipe:
         self.cli = (
             ["python", "-m", "dul.scripts.tfdoc.update"] +
-            extra_args + ["--command", " ".join(command.cli)] +
-            self.schema.process(locals())
+            self.schema.process(locals()) +
+            ["--command", " ".join(command.cli)] + extra_args
         )
         return self
 

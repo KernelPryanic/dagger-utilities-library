@@ -40,11 +40,15 @@ class cli(pipe):
             raise DULException(msg)
 
     def install(self, packages: list[str], extra_args: list = []) -> pipe:
-        self.__common(locals())
+        parameters = locals()
+        parameters.pop("self")
+        self.__common(**parameters)
         self.cli += ["add"] + self.schema.process(locals()) + extra_args
         return self
 
     def uninstall(self, packages: list[str], extra_args: list = []) -> pipe:
-        self.__common(locals())
+        parameters = locals()
+        parameters.pop("self")
+        self.__common(**parameters)
         self.cli += ["del"] + self.schema.process(locals()) + extra_args
         return self
