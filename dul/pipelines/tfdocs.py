@@ -149,7 +149,7 @@ class cli(pipe):
             return self
 
     def markdown(
-        self,  anchor: bool = None, default: bool = None,
+        self, anchor: bool = None, default: bool = None,
         escape: bool = None, hide_empty: bool = None, html: bool = None,
         indent: int = None, required: bool = None, sensitive: bool = None,
         type: bool = None, extra_args: list = []
