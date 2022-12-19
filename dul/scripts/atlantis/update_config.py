@@ -34,7 +34,7 @@ from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedSeq
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString as SQ
 
-from ...common.git import git_ls_files, git_root_dir
+from ...modules.git import git_ls_files, git_root_dir
 
 
 def _add_types_path(acc: List[Dict], dir: str, extension: str, recursive: bool = True) -> List[str]:

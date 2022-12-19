@@ -4,7 +4,7 @@ from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 
-from .exceptions import MissingEnvVar
+from ..common.exceptions import MissingEnvVar
 
 
 class Secrets(dict):
