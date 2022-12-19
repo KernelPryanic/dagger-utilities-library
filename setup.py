@@ -25,7 +25,7 @@ setup(
     extras_require={
         "modules": modules_requirements,
         "pipelines": pipelines_requirements,
-        "scripts": list(set(scripts_requirements) + set(modules_requirements)),
+        "scripts": list(set(scripts_requirements).union(modules_requirements)),
     },
     package_data={
         "": ["scripts/**/*.sh"],
