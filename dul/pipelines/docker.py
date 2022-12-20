@@ -119,6 +119,8 @@ class cli(pipe):
         self, server: str = None, username: str = None, password: str = None,
         extra_args: list = []
     ) -> __login:
+        parameters = locals()
+        parameters.pop("self")
         return self.__login(self, **parameters)
 
     def __call__(self, client: Client, container: Container, root: str = None) -> Container:
