@@ -61,13 +61,20 @@ def repeat(name): return once(name)
 
 
 class cli(pipe):
-    def __init__(self, target: str = None, version: bool = None, extra_args: list = []):
+    def __init__(
+        self, target: str = None, tags: list[str] = None,
+        process_execution_local_parallelism: int = None,
+        version: bool = None, extra_args: list = []
+    ):
         parameters = locals()
         self.schema = Schema(
             {
                 "target": Positional(lambda v: [v]),
                 "version": Flag(flag("--version")),
                 "since": Once(once("--changed-since")),
+                "tags": Repeat(repeat("--tag")),
+                "process_execution_local_parallelism":
+                Once(once("--process-execution-local-parallelism")),
                 "diffspec": Once(once("--changed-diffspec")),
                 "dependees": Once(once("--changed-dependees")),
                 "only": Repeat(repeat("--only")),
@@ -102,10 +109,12 @@ class cli(pipe):
         self.cli += ["lint"] + self.schema.process(locals()) + extra_args
         return self
 
-    def package(
-        self, extra_args: list = []
-    ):
+    def package(self, extra_args: list = []):
         self.cli += ["package"] + extra_args
+        return self
+
+    def publish(self, output: str = None, extra_args: list = []):
+        self.cli += ["publish"] + self.schema.process(locals()) + extra_args
         return self
 
     def run(
