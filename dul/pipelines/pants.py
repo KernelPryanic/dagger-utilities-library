@@ -61,7 +61,7 @@ def repeat(name): return once(name)
 
 
 class cli(pipe):
-    def __init__(self, target: str = "::", version: bool = None, extra_args: list = []):
+    def __init__(self, target: str = None, version: bool = None, extra_args: list = []):
         parameters = locals()
         self.schema = Schema(
             {
