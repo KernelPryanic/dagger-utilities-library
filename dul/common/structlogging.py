@@ -1,3 +1,5 @@
+"""Structlogging configuration."""
+
 import logging
 
 import structlog
@@ -18,5 +20,5 @@ structlog.configure(
     ],
     logger_factory=structlog.PrintLoggerFactory(),
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
-    cache_logger_on_first_use=True
+    cache_logger_on_first_use=True,
 )

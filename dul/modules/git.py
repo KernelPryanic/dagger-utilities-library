@@ -1,6 +1,4 @@
-"""
-Git helper functions in python
-"""
+"""Git helper functions in python."""
 
 import os
 import subprocess
@@ -10,11 +8,12 @@ def command_output(cmd: list[str]) -> str:
     """Function execute commands and returns the standard output as a list of string.
 
     Args:
-        cmd: The command to execute.
+        cmd (list[str]): The command to execute.
 
     Returns:
-        The command output as a list of string.
+        str: The command output as a list of string.
     """
+
     if not cmd or cmd is None:
         print(":error:")
         print("Command is empty.")
@@ -31,11 +30,12 @@ def command_output(cmd: list[str]) -> str:
 
 
 def git_root_dir() -> str:
-    """Function to get the root directory of a git repo
+    """Function to get the root directory of a git repo.
 
     Returns:
-        git's root directory path
+        str: git's root directory path
     """
+
     cmd = ["git", "rev-parse", "--show-toplevel"]
     sub = command_output(cmd)
     res = sub.rstrip()
@@ -43,14 +43,15 @@ def git_root_dir() -> str:
 
 
 def git_ls_files(files: list[str] = []) -> list[str]:
-    """Function to get the list of files in of a git repo
+    """Function to get the list of files in of a git repo.
 
     Args:
-        files: Files to show. If no files are given all files which match the other specified
+        files (list[str]): Files to show. If no files are given all files which match the other specified
                criteria are shown. See the `<file>` argument in `git ls-files`.
     Returns:
-        Output of `git ls-files` with the given arguments
+        list[str]: Output of `git ls-files` with the given arguments
     """
+
     cmd = ["git", "ls-files"]
     cmd += files
     sub = command_output(cmd)
@@ -60,11 +61,12 @@ def git_ls_files(files: list[str] = []) -> list[str]:
 
 
 def git_lfs_files() -> list[str]:
-    """Function to get the list of LFS files in of a git repo
+    """Function to get the list of LFS files in of a git repo.
 
     Returns:
-        Output of `git lfs ls -n` with the given arguments
+        list[str]: Output of `git lfs ls -n` with the given arguments
     """
+
     cmd = ["git", "lfs", "ls-files", "-n"]
     sub = command_output(cmd)
     res = sub.rstrip().split("\n")
@@ -72,18 +74,19 @@ def git_lfs_files() -> list[str]:
     return res
 
 
-def git_find_files(dir: str = ".", args: list[str] = []) -> list[str]:
+def git_find_files(directory: str = ".", args: list[str] = []) -> list[str]:
     """Function to get the list of intersecting files matching the `find` command and
     `git lf-files`.
 
     Args:
-        dir: The directory to search
-        args: Extra arguments for the `find` command. See `man find`.
+        directory (str): The directory to search
+        args (list[str]): Extra arguments for the `find` command. See `man find`.
 
     Returns:
-        A list of files.
+        list[str]: A list of files.
     """
-    cmd = ["find", dir, "-type", "f"]
+
+    cmd = ["find", directory, "-type", "f"]
     cmd += args
     # get files with `find`
     sub = command_output(cmd)
@@ -91,7 +94,7 @@ def git_find_files(dir: str = ".", args: list[str] = []) -> list[str]:
     files_find = list(filter(len, files_find))
     files_find = list(map(os.path.normpath, files_find))
     # get git files
-    files_git = git_ls_files([dir])
+    files_git = git_ls_files([directory])
     # intersection of `files_find` and `files_git`
     res = list(set(files_find) & set(files_git))
     return res

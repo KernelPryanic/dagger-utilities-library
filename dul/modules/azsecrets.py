@@ -1,31 +1,33 @@
+"""Azure Key Vault secrets module."""
+
 import os
 
 from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
 
-from ..common.exceptions import MissingEnvVar
+from dul.common.exceptions import MissingEnvVar
 
 
 class Secrets(dict):
+    """Azure Key Vault secrets reader.
+
+    The following environment variables MUST be set:\n
+    APPLICATION_ID - Service principal app ID\n
+    APPLICATION_SECRET - Service principal app password\n
+    TENANT_ID - Azure subscription ID\n
+
+    Args:
+        key_vault (str): Key Vault name
+
+    Returns:
+        dict[str, str]: Dictionary of secret keys to secret values
+
+    Raises:
+        MissingEnvVar
+    """
+
     def __init__(self, key_vault: str, *args, **kwargs) -> dict[str, str]:
-        """Azure Key Vault secrets reader.
-
-        The following environment variables MUST be set:\n
-        APPLICATION_ID - Service principal app ID\n
-        APPLICATION_SECRET - Service principal app password\n
-        TENANT_ID - Azure subscription ID\n
-
-        Args:
-            key_vault: Key Vault name
-
-        Returns:
-            Dictionary of secret keys to secret values
-
-        Raises:
-            MissingEnvVar
-        """
-
         dict.__init__(self, *args, **kwargs)
         self.vault_url = f"https://{key_vault}.vault.azure.net"
         app_id = os.getenv("APPLICATION_ID")
@@ -40,11 +42,13 @@ class Secrets(dict):
         self.credential = ClientSecretCredential(tenant_id, app_id, app_secret)
 
     def init(self):
-        self.client = SecretClient(
-            vault_url=self.vault_url, credential=self.credential
-        )
+        """Initialize the secrets reader."""
+
+        self.client = SecretClient(vault_url=self.vault_url, credential=self.credential)
 
     def terminate(self):
+        """Terminate the secrets reader."""
+
         self.clear()
         self.client.close()
 
