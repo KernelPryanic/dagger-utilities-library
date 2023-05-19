@@ -1,100 +1,68 @@
 """Git helper functions in python."""
 
 import os
-import subprocess
+from typing import Generator
+
+from git import Blob, Repo
 
 
-def command_output(cmd: list[str]) -> str:
-    """Function execute commands and returns the standard output as a list of string.
+class GitRepo(Repo):
+    """Extended Git repository object."""
 
-    Args:
-        cmd (list[str]): The command to execute.
+    def __init__(self, path: str = ".", *args, **kwargs):
+        Repo.__init__(self, path, search_parent_directories=True, *args, **kwargs)
 
-    Returns:
-        str: The command output as a list of string.
-    """
+    def get_root(self) -> str:
+        """Get the root directory of the git repo.
 
-    if not cmd or cmd is None:
-        print(":error:")
-        print("Command is empty.")
-        exit(1)
-    try:
-        sub = subprocess.run(
-            cmd, universal_newlines=True, capture_output=True, text=True, check=True
-        )
-    except Exception as exc:
-        print(":error:")
-        print(exc)
-        exit(1)
-    return sub.stdout
+        Args:
+            path (str): The path to the file or directory.
 
+        Returns:
+            str: The root directory of the git repo.
+        """
 
-def git_root_dir() -> str:
-    """Function to get the root directory of a git repo.
+        return self.working_tree_dir
 
-    Returns:
-        str: git's root directory path
-    """
+    @classmethod
+    def is_lsf_file(cls, blob: Blob) -> bool:
+        """Check if the blob is a LFS file.
 
-    cmd = ["git", "rev-parse", "--show-toplevel"]
-    sub = command_output(cmd)
-    res = sub.rstrip()
-    return res
+        Args:
+            blob (Blob): The blob to check.
 
+        Returns:
+            bool: True if the blob is a LFS file.
+        """
 
-def git_ls_files(files: list[str] = []) -> list[str]:
-    """Function to get the list of files in of a git repo.
+        content = blob.data_stream.read(42).decode("utf-8")
+        return content.startswith("version https://git-lfs.github.com/spec/v1")
 
-    Args:
-        files (list[str]): Files to show. If no files are given all files which match the other specified
-               criteria are shown. See the `<file>` argument in `git ls-files`.
-    Returns:
-        list[str]: Output of `git ls-files` with the given arguments
-    """
+    def get_lfs_files(self) -> Generator[str, None, None]:
+        """Get the list of LFS files in the git repo.
 
-    cmd = ["git", "ls-files"]
-    cmd += files
-    sub = command_output(cmd)
-    res = sub.rstrip().split("\n")
-    res = list(filter(len, res))
-    return res
+        Returns:
+            Generator[str, None, None]: A generator of LFS files in the git repo.
+        """
 
+        if not self.bare:
+            commit = self.head.commit
+            for blob in commit.tree.traverse():
+                if blob.type == "blob" and self.is_lsf_file(blob):
+                    yield blob.path
 
-def git_lfs_files() -> list[str]:
-    """Function to get the list of LFS files in of a git repo.
+    def find_files(self, regex: str) -> Generator[str, None, None]:
+        """Get the list of files matching the regex.
 
-    Returns:
-        list[str]: Output of `git lfs ls -n` with the given arguments
-    """
+        Args:
+            regex (str): The regex to match.
 
-    cmd = ["git", "lfs", "ls-files", "-n"]
-    sub = command_output(cmd)
-    res = sub.rstrip().split("\n")
-    res = list(filter(len, res))
-    return res
+        Returns:
+            Generator[str, None, None]: A generator of files matching the regex.
+        """
 
-
-def git_find_files(directory: str = ".", args: list[str] = []) -> list[str]:
-    """Function to get the list of intersecting files matching the `find` command and
-    `git lf-files`.
-
-    Args:
-        directory (str): The directory to search
-        args (list[str]): Extra arguments for the `find` command. See `man find`.
-
-    Returns:
-        list[str]: A list of files.
-    """
-
-    cmd = ["find", directory, "-type", "f"]
-    cmd += args
-    # get files with `find`
-    sub = command_output(cmd)
-    files_find = sub.rstrip().split("\n")
-    files_find = list(filter(len, files_find))
-    files_find = list(map(os.path.normpath, files_find))
-    # get git files
-    files_git = git_ls_files([directory])
-    # intersection of `files_find` and `files_git`
-    res = list(set(files_find) & set(files_git))
-    return res
+        if not self.bare:
+            commit = self.head.commit
+            for blob in commit.tree.traverse():
+                if blob.type == "blob" and os.path.basename(blob.path).match(regex):
+                    yield blob.path
