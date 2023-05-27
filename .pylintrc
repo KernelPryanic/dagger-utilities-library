@@ -1,2 +1,2 @@
 [MESSAGES CONTROL]
-disable=attribute-defined-outside-init,unexpected-special-method-signature,keyword-arg-before-vararg,import-self
+disable=attribute-defined-outside-init,unexpected-special-method-signature,keyword-arg-before-vararg,import-self,invalid-name

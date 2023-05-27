@@ -9,48 +9,64 @@ from typing import Generator
 from git import Blob, Repo
 
 
-class GitRepo(Repo):
-    """Extended Git repository object."""
+class GitRepo:
+    """Extended Git repository object.
 
-    def __init__(self, path: str = ".", *args, **kwargs):
-        Repo.__init__(self, path, search_parent_directories=True, *args, **kwargs)
+    Args:
+        path (str, optional): The path to the git repo. Defaults to ".".
+        repo (Repo, optional): The git repo object. Defaults to None.
+        blobs (Generator[Blob, None, None], optional): The generator of blobs in the git repo. Defaults to None.
+
+    Returns:
+        GitRepo: The extended git repo object.
+    """
+
+    def __init__(
+        self,
+        path: str = ".",
+        repo: Repo = None,
+        blobs: Generator[Blob, None, None] = None,
+        *args,
+        **kwargs,
+    ):
+        if repo is not None:
+            self.repo = repo
+        else:
+            self.repo = Repo(path, search_parent_directories=True, *args, **kwargs)
         self.blobs: Generator[Blob, None, None]
+        if blobs is not None:
+            self.blobs = blobs
 
     def get_root(self) -> str:
         """Get the root directory of the git repo.
-
-        Args:
-            path (str): The path to the file or directory.
 
         Returns:
             str: The root directory of the git repo.
         """
 
-        return self.working_tree_dir
+        return self.repo.working_tree_dir
 
     def get_blobs(self) -> GitRepo:
         """Get the list of blobs in the git repo.
 
         Returns:
-            Generator[Blob, None, None]: A generator of blobs in the git repo.
+            GitRepo: A new instance of GitRepo with the generator of all blobs in the git repo.
         """
 
         def get_blobs():
-            if not self.bare:
-                commit = self.head.commit
+            if not self.repo.bare:
+                commit = self.repo.head.commit
                 for blob in commit.tree.traverse():
                     if blob.type == "blob":
                         yield blob
 
-        self.blobs = get_blobs()
-
-        return self
+        return GitRepo(repo=self.repo, blobs=get_blobs())
 
     def get_lfs_blobs(self) -> GitRepo:
         """Get the list of LFS blobs in the git repo.
 
         Returns:
-            Generator[Blob, None, None]: A generator of LFS blobs in the git repo.
+            GitRepo: A new instance of GitRepo with the generator of LFS blobs in the git repo.
         """
 
         def get_lfs_blobs():
@@ -58,9 +74,7 @@ class GitRepo(Repo):
                 if self.is_lfs_blob(blob):
                     yield blob
 
-        self.blobs = get_lfs_blobs()
-
-        return self
+        return GitRepo(repo=self.repo, blobs=get_lfs_blobs())
 
     def find_blobs(self, pattern: str) -> GitRepo:
         """Get the list of blobs matching the pattern.
@@ -69,7 +83,7 @@ class GitRepo(Repo):
             pattern (str): The pattern to match.
 
         Returns:
-            Generator[Blob, None, None]: A generator of blobs matching the pattern.
+            GitRepo: A new instance of GitRepo with the generator of blobs matching the pattern.
         """
 
         def find_blobs():
@@ -77,21 +91,17 @@ class GitRepo(Repo):
                 if re.search(pattern, os.path.basename(blob.path)):
                     yield blob
 
-        # self.blobs = find_blobs()
-        c = GitRepo(self.working_tree_dir)
-        c.blobs = find_blobs()
-
-        return c
+        return GitRepo(repo=self.repo, blobs=find_blobs())
 
     @classmethod
     def is_lfs_blob(cls, blob: Blob) -> bool:
-        """Check if the blob belongs to lfs.
+        """Check if the blob belongs to LFS.
 
         Args:
             blob (Blob): The blob to check.
 
         Returns:
-            bool: True if the blob belongs to lfs.
+            bool: True if the blob belongs to LFS.
         """
 
         content = blob.data_stream.read(42).decode("utf-8")
