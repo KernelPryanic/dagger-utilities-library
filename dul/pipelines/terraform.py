@@ -2,22 +2,24 @@ from enum import Enum
 
 from dagger.api.gen import Container
 
-from . import curl
-from .base import Flag, Once, Positional, Schema, pipe
+from dul.pipelines import curl
+from dul.pipelines.base import Flag, Once, Repeat, Positional, Schema, pipe
 
 
 class LockfileMode(Enum):
     READONLY = "readonly"
 
 
-def flag(name): return lambda: [name]
-def once(name): return lambda value: [f"{name}={value}"]
+def flag(name):
+    return lambda: [name]
+
+
+def once(name):
+    return lambda value: [f"{name}={value}"]
 
 
 class cli(pipe):
-    def __init__(
-        self, version: bool = None, chdir: str = None, extra_args: list = []
-    ) -> pipe:
+    def __init__(self, version: bool = None, chdir: str = None, extra_args: list = []) -> pipe:
         parameters = locals()
         self.schema = Schema(
             {
@@ -48,7 +50,6 @@ class cli(pipe):
                 "var_file": Once(once("-var-file")),
                 "compact_warnings": Flag(flag("-compact-warnings")),
                 "detailed_exitcode": Flag(flag("-detailed-exitcode")),
-                "lock": Once(once("-lock")),
                 "out": Once(once("-out")),
                 "parallelism": Once(once("-parallelism")),
                 "state": Once(once("-state")),
@@ -60,71 +61,110 @@ class cli(pipe):
                 "write": Once(once("-write")),
                 "diff": Flag(flag("-diff")),
                 "check": Flag(flag("-check")),
-                "recursive": Flag(flag("-recursive"))
+                "recursive": Flag(flag("-recursive")),
             }
         )
         self.cli = ["terraform"] + self.schema.process(parameters) + extra_args
 
     def init(
-        self, backend: bool = None, backend_config: str = None,
-        force_copy: bool = None, from_module: str = None, get: bool = None,
-        input: bool = None, lock: bool = None, lock_timeout: int = None,
-        no_color: bool = None, plugin_dir: str = None, reconfigure: bool = None,
-        migrate_state: bool = None, upgrade: bool = None,
-        lockfile: LockfileMode = None, ignore_remote_version: bool = None,
-        extra_args: list = []
+        self,
+        backend: bool = None,
+        backend_config: str = None,
+        force_copy: bool = None,
+        from_module: str = None,
+        get: bool = None,
+        input: bool = None,
+        lock: bool = None,
+        lock_timeout: int = None,
+        no_color: bool = None,
+        plugin_dir: str = None,
+        reconfigure: bool = None,
+        migrate_state: bool = None,
+        upgrade: bool = None,
+        lockfile: LockfileMode = None,
+        ignore_remote_version: bool = None,
+        extra_args: list = [],
     ) -> pipe:
         self.cli += ["init"] + self.schema.process(locals()) + extra_args
         return self
 
-    def validate(
-        self, json: bool = None, no_color: bool = None, extra_args: list = []
-    ) -> pipe:
+    def validate(self, json: bool = None, no_color: bool = None, extra_args: list = []) -> pipe:
         self.cli += ["validate"] + self.schema.process(locals()) + extra_args
         return self
 
     def plan(
-        self, destroy: bool = None, refresh_only: bool = None,
-        refresh: bool = None, replace: str = None, target: str = None,
-        vars: dict = None, var_file: str = None, compact_warnings: bool = None,
-        detailed_exitcode: bool = None, input: bool = None, lock: bool = None,
-        lock_timeout: str = None, no_color: bool = None, out: str = None,
-        parallelism: int = None, state: str = None, extra_args: list = []
+        self,
+        destroy: bool = None,
+        refresh_only: bool = None,
+        refresh: bool = None,
+        replace: str = None,
+        target: str = None,
+        vars: dict = None,
+        var_file: str = None,
+        compact_warnings: bool = None,
+        detailed_exitcode: bool = None,
+        input: bool = None,
+        lock: bool = None,
+        lock_timeout: str = None,
+        no_color: bool = None,
+        out: str = None,
+        parallelism: int = None,
+        state: str = None,
+        extra_args: list = [],
     ) -> pipe:
         self.cli += ["plan"] + self.schema.process(locals()) + extra_args
         return self
 
     def apply(
-        self, auto_approve: bool = None, backup: str = None,
-        compact_warnings: bool = None, destroy: bool = None, lock: bool = None,
-        lock_timeout: str = None, input: bool = None, no_color: bool = None,
-        parallelism: int = None, state: str = None, state_out: str = None,
-        extra_args: list = []
+        self,
+        auto_approve: bool = None,
+        backup: str = None,
+        compact_warnings: bool = None,
+        destroy: bool = None,
+        lock: bool = None,
+        lock_timeout: str = None,
+        input: bool = None,
+        no_color: bool = None,
+        parallelism: int = None,
+        state: str = None,
+        state_out: str = None,
+        extra_args: list = [],
     ) -> pipe:
         self.cli += ["apply"] + self.schema.process(locals()) + extra_args
         return self
 
     def destroy(
-        self, auto_approve: bool = None, backup: str = None,
-        compact_warnings: bool = None, lock: bool = None,
-        lock_timeout: str = None, input: bool = None, no_color: bool = None,
-        parallelism: int = None, state: str = None, state_out: str = None,
-        extra_args: list = []
+        self,
+        auto_approve: bool = None,
+        backup: str = None,
+        compact_warnings: bool = None,
+        lock: bool = None,
+        lock_timeout: str = None,
+        input: bool = None,
+        no_color: bool = None,
+        parallelism: int = None,
+        state: str = None,
+        state_out: str = None,
+        extra_args: list = [],
     ) -> pipe:
         self.cli += ["destroy"] + self.schema.process(locals()) + extra_args
         return self
 
     def format(
-        self, path: str = None, list: bool = None, write: bool = None,
-        diff: bool = None, check: bool = None, no_color: bool = None,
-        recursive: bool = None, extra_args: list = []
+        self,
+        path: str = None,
+        list: bool = None,
+        write: bool = None,
+        diff: bool = None,
+        check: bool = None,
+        no_color: bool = None,
+        recursive: bool = None,
+        extra_args: list = [],
     ) -> pipe:
         self.cli += ["format"] + self.schema.process(locals()) + extra_args
         return self
 
-    def show(
-        self, path: str = None, json: bool = None, no_color: bool = None, extra_args: list = []
-    ) -> pipe:
+    def show(self, path: str = None, json: bool = None, no_color: bool = None, extra_args: list = []) -> pipe:
         self.cli += ["show"] + self.schema.process(locals()) + extra_args
         return self
 
@@ -136,16 +176,14 @@ class cli(pipe):
                 "force": Flag(flag("-force")),
                 "lock": Once(once("-lock")),
                 "lock_timeout": Once(once("-lock-timeout")),
-                "state": Once(once("-state"))
+                "state": Once(once("-state")),
             }
             self.cli = parent.cli + ["workspace"] + extra_args
 
         def delete(
-            self, force: bool = None, lock: bool = None,
-            lock_timeout: str = None, extra_args: list = []
+            self, force: bool = None, lock: bool = None, lock_timeout: str = None, extra_args: list = []
         ) -> pipe:
-            self.cli += ["delete"] + \
-                self.schema.process(locals()) + extra_args
+            self.cli += ["delete"] + self.schema.process(locals()) + extra_args
             return self
 
         def list(self, extra_args: list = []) -> pipe:
@@ -153,8 +191,7 @@ class cli(pipe):
             return self
 
         def new(
-            self, name: str, lock: bool = None, lock_timeout: str = None,
-            state: str = None, extra_args: list = []
+            self, name: str, lock: bool = None, lock_timeout: str = None, state: str = None, extra_args: list = []
         ) -> pipe:
             self.cli += ["new"] + self.schema.process(locals()) + extra_args
             return self
@@ -167,18 +204,18 @@ class cli(pipe):
             self.cli += ["select"] + extra_args
             return self
 
-    def workspace(
-        self, extra_args: list = []
-    ) -> __workspace:
+    def workspace(self, extra_args: list = []) -> __workspace:
         return self.__workspace(self, locals())
 
 
 def install(container: Container, version: str, root: str = None) -> Container:
     binary_name = "terraform"
     return (
-        curl.cli(redirect=True, silent=True, show_error=True, output=f"./{binary_name}.zip").
-        get(f"https://releases.hashicorp.com/{binary_name}/{version}/terraform_{version}_linux_amd64.zip")(container, root).
-        with_exec(["unzip", f"{binary_name}.zip"]).
-        with_exec(["chmod", "+x", f"{binary_name}"]).
-        with_exec(["mv", f"{binary_name}", "/usr/local/bin/"])
+        curl.cli(redirect=True, silent=True, show_error=True, output=f"./{binary_name}.zip")
+        .get(f"https://releases.hashicorp.com/{binary_name}/{version}/terraform_{version}_linux_amd64.zip")(
+            container, root
+        )
+        .with_exec(["unzip", f"{binary_name}.zip"])
+        .with_exec(["chmod", "+x", f"{binary_name}"])
+        .with_exec(["mv", f"{binary_name}", "/usr/local/bin/"])
     )

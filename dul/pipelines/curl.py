@@ -2,10 +2,10 @@ import json
 
 import structlog
 
-from ..common.exceptions import DULException
-from ..common.structlogging import *
-from .base import Flag, Once, Positional, Repeat, Schema, pipe
-from .generic import get_job_name, get_method_name
+from dul.common.exceptions import DULException
+from dul.common.structlogging import *
+from dul.pipelines.base import Flag, Once, Positional, Repeat, Schema, pipe
+from dul.pipelines.generic import get_job_name, get_method_name
 
 log = structlog.get_logger()
 
@@ -99,4 +99,25 @@ class cli(pipe):
         self.__common(**parameters)
         self.cli += ["-X", "DELETE"] + \
             self.schema.process(locals()) + extra_args
+        return self
+        payload: dict = None,
+        extra_args: list = [],
+    ) -> pipe:
+        parameters = locals()
+        parameters.pop("self")
+        self.__common(**parameters)
+        self.cli += ["-X", "PATCH"] + self.schema.process(locals()) + extra_args
+        return self
+
+    def delete(
+        self,
+        url: str,
+        headers: dict = None,
+        payload: dict = None,
+        extra_args: list = [],
+    ) -> pipe:
+        parameters = locals()
+        parameters.pop("self")
+        self.__common(**parameters)
+        self.cli += ["-X", "DELETE"] + self.schema.process(locals()) + extra_args
         return self

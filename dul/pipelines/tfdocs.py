@@ -2,8 +2,8 @@ from enum import Enum
 
 from dagger.api.gen import Container
 
-from . import curl
-from .base import Flag, Once, Positional, Schema, pipe
+from dul.pipelines import curl
+from dul.pipelines.base import Flag, Once, Positional, Schema, pipe
 
 
 class Section(Enum):

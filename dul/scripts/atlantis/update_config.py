@@ -203,13 +203,11 @@ def main(atlantis_yaml_file: str, check: bool) -> int:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="populate-atlantis")
-    parser.add_argument(
-        "--conf", help="Atlantis configuration file", default=None)
+    parser.add_argument("--conf", help="Atlantis configuration file", default=None)
     parser.add_argument(
         "--check",
         default=False,
-        help="Check if the populated atlantis configuration is similar to the existing file"
-        + ".False if not set",
+        help="Check if the populated atlantis configuration is similar to the existing file" + ".False if not set",
         action="store_true",
     )
     args = parser.parse_args()

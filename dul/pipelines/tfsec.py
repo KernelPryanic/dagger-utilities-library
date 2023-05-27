@@ -2,8 +2,8 @@ from enum import Enum
 
 from dagger.api.gen import Container
 
-from . import curl
-from .base import Flag, Once, Positional, Repeat, Schema, pipe
+from dul.pipelines import curl
+from dul.pipelines.base import Flag, Once, Positional, Repeat, Schema, pipe
 
 
 class Theme(Enum):
@@ -31,9 +31,16 @@ class Severity(Enum):
     LOW = "LOW"
 
 
-def flag(name): return lambda: [name]
-def once(name): return lambda value: [name, value]
-def repeat(name): return once(name)
+def flag(name):
+    return lambda: [name]
+
+
+def once(name):
+    return lambda value: [name, value]
+
+
+def repeat(name):
+    return once(name)
 
 
 def repeat_comma(name):
@@ -42,20 +49,45 @@ def repeat_comma(name):
 
 class cli(pipe):
     def __init__(
-        self, path: str, code_theme: Theme = None, concise_output: bool = None,
-        config_file: str = None, config_file_url: str = None, custom_check_dir: str = None,
-        custom_check_url: str = None, debug: bool = None, disable_grouping: bool = None,
-        exclude: list[str] = None, exclude_downloaded_modules: bool = None,
-        exclude_ignores: list[str] = None, exclude_paths: list[str] = None,
-        filter_results: list[str] = None, force_all_dirs: bool = None,
-        format: list[Format] = None, ignore_hcl_errors: bool = None, include_ignored: bool = None,
-        include_passed: bool = None, migrate_ignores: bool = None,
-        minimum_severity: Severity = None, no_code: bool = None, no_color: bool = None,
-        no_ignores: bool = None, no_module_downloads: bool = None, out: str = None,
-        print_rego_input: bool = None, rego_only: bool = None, rego_policy_dir: str = None,
-        run_statistics: bool = None, single_thread: bool = None, soft_fail: bool = None,
-        update: bool = None, var_file: str = None, verbose: bool = None, version: bool = None,
-        workspace: str = None, extra_args: list = []
+        self,
+        path: str,
+        code_theme: Theme = None,
+        concise_output: bool = None,
+        config_file: str = None,
+        config_file_url: str = None,
+        custom_check_dir: str = None,
+        custom_check_url: str = None,
+        debug: bool = None,
+        disable_grouping: bool = None,
+        exclude: list[str] = None,
+        exclude_downloaded_modules: bool = None,
+        exclude_ignores: list[str] = None,
+        exclude_paths: list[str] = None,
+        filter_results: list[str] = None,
+        force_all_dirs: bool = None,
+        format: list[Format] = None,
+        ignore_hcl_errors: bool = None,
+        include_ignored: bool = None,
+        include_passed: bool = None,
+        migrate_ignores: bool = None,
+        minimum_severity: Severity = None,
+        no_code: bool = None,
+        no_color: bool = None,
+        no_ignores: bool = None,
+        no_module_downloads: bool = None,
+        out: str = None,
+        print_rego_input: bool = None,
+        rego_only: bool = None,
+        rego_policy_dir: str = None,
+        run_statistics: bool = None,
+        single_thread: bool = None,
+        soft_fail: bool = None,
+        update: bool = None,
+        var_file: str = None,
+        verbose: bool = None,
+        version: bool = None,
+        workspace: str = None,
+        extra_args: list = [],
     ) -> pipe:
         parameters = locals()
         schema = Schema(
@@ -96,7 +128,7 @@ class cli(pipe):
                 "var_file": Once(once("--var-file")),
                 "verbose": Flag(flag("--verbose")),
                 "version": Flag(flag("--version")),
-                "workspace": Once(once("--workspace"))
+                "workspace": Once(once("--workspace")),
             }
         )
         self.cli = ["tfsec"] + schema.process(parameters) + extra_args
@@ -104,17 +136,14 @@ class cli(pipe):
 
 class scripts(pipe):
     def __init__(self, parent: pipe) -> pipe:
-        self.schema = Schema(
-            {
-                "directory": Positional(lambda v: [v])
-            }
-        )
+        self.schema = Schema({"directory": Positional(lambda v: [v])})
 
     def scan(self, directory: str, command: pipe = None, extra_args: list = []) -> pipe:
         self.cli = (
-            ["python", "-m", "dul.scripts.tfsec.scan"] +
-            ["--command", " ".join(command.cli)] +
-            self.schema.process(locals()) + extra_args
+            ["python", "-m", "dul.scripts.tfsec.scan"]
+            + ["--command", " ".join(command.cli)]
+            + self.schema.process(locals())
+            + extra_args
         )
         return self
 
@@ -122,8 +151,10 @@ class scripts(pipe):
 def install(container: Container, version: str, root: str = None) -> Container:
     binary_name = "tfsec"
     return (
-        curl.cli(redirect=True, silent=True, show_error=True, output=f"{binary_name}").
-        get(f"https://github.com/aquasecurity/{binary_name}/releases/download/v{version}/{binary_name}-linux-amd64")(container, root).
-        with_exec(["chmod", "+x", f"{binary_name}"]).
-        with_exec(["mv", f"{binary_name}", "/usr/local/bin/"])
+        curl.cli(redirect=True, silent=True, show_error=True, output=f"{binary_name}")
+        .get(f"https://github.com/aquasecurity/{binary_name}/releases/download/v{version}/{binary_name}-linux-amd64")(
+            container, root
+        )
+        .with_exec(["chmod", "+x", f"{binary_name}"])
+        .with_exec(["mv", f"{binary_name}", "/usr/local/bin/"])
     )

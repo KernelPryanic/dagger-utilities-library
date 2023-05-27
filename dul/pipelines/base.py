@@ -1,15 +1,13 @@
+import structlog
 from dagger.api.gen import Container
 
-from ..common.structlogging import *
 from .generic import get_job_name
 
 log = structlog.get_logger()
 
 
 class Argument:
-    def __init__(
-        self, format: callable
-    ) -> None:
+    def __init__(self, format: callable) -> None:
         self.format = format
 
 
@@ -30,6 +28,8 @@ class Repeat(Argument):
 
 
 class Schema(dict):
+    """Schema represents CLI arguments and keeps the arguments order."""
+
     def __init__(self, *args, **kwargs):
         dict.__init__(self, *args, **kwargs)
 
@@ -70,14 +70,16 @@ class Schema(dict):
         return args
 
 
-class pipe():
+class pipe:
     def __init__(self):
         self.schema: dict
         self.cli: list
         self.parent: pipe
 
     def __call__(
-        self, container: Container, root: str = None,
+        self,
+        container: Container,
+        root: str = None,
     ) -> Container:
         pipeline = container
         if root is not None:
@@ -85,7 +87,4 @@ class pipe():
 
         log.info("Executing", job=get_job_name(), command=self.cli)
 
-        return (
-            pipeline.
-            with_exec(self.cli)
-        )
+        return pipeline.with_exec(self.cli)

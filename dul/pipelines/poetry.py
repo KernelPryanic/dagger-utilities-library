@@ -1,11 +1,18 @@
 from enum import Enum
 
-from .base import Flag, Once, Positional, Schema, pipe
+from dul.pipelines.base import Flag, Once, Positional, Schema, pipe
 
 
-def flag(name): return lambda: [name]
-def once(name): return lambda value: [f"{name}={value}"]
-def positional(): return lambda v: [v]
+def flag(name):
+    return lambda: [name]
+
+
+def once(name):
+    return lambda value: [f"{name}={value}"]
+
+
+def positional():
+    return lambda v: [v]
 
 
 class BuildFormat(Enum):
@@ -15,9 +22,16 @@ class BuildFormat(Enum):
 
 class cli(pipe):
     def __init__(
-        self, quiet: bool = None, version: bool = None, ansi: bool = None,
-        no_ansi: bool = None, no_interaction: bool = None, no_plugins: bool = None,
-        no_cache: bool = None, verbose: bool = None, extra_args: list = []
+        self,
+        quiet: bool = None,
+        version: bool = None,
+        ansi: bool = None,
+        no_ansi: bool = None,
+        no_interaction: bool = None,
+        no_plugins: bool = None,
+        no_cache: bool = None,
+        verbose: bool = None,
+        extra_args: list = [],
     ) -> pipe:
         parameters = locals()
         self.schema = Schema(
@@ -43,30 +57,32 @@ class cli(pipe):
                 "client_cert": Once(once("--client-cert")),
                 "build": Flag(flag("--build")),
                 "dry_run": Flag(flag("--dry-run")),
-                "skip_existing": Flag(flag("--skip-existing"))
+                "skip_existing": Flag(flag("--skip-existing")),
             }
         )
-        self.cli = ["poetry"] + \
-            self.schema.process(parameters) + extra_args
+        self.cli = ["poetry"] + self.schema.process(parameters) + extra_args
 
     def build(self, format: BuildFormat = None, extra_args: list = []) -> pipe:
-        self.cli += ["build"] + \
-            self.schema.process(locals()) + extra_args
+        self.cli += ["build"] + self.schema.process(locals()) + extra_args
         return self
 
     def config(
-        self, key: str, value: str, list: bool = None, unset: bool = None,
-        local: bool = None, extra_args: list = []
+        self, key: str, value: str, list: bool = None, unset: bool = None, local: bool = None, extra_args: list = []
     ) -> pipe:
-        self.cli += ["config"] + \
-            self.schema.process(locals()) + extra_args
+        self.cli += ["config"] + self.schema.process(locals()) + extra_args
         return self
 
     def publish(
-        self, repository: str, username: str, password: str, cert: str = None,
-        client_cert: str = None, build: bool = None, dry_run: bool = None,
-        skip_existing: bool = None, extra_args: list = []
+        self,
+        repository: str,
+        username: str,
+        password: str,
+        cert: str = None,
+        client_cert: str = None,
+        build: bool = None,
+        dry_run: bool = None,
+        skip_existing: bool = None,
+        extra_args: list = [],
     ) -> pipe:
-        self.cli += ["publish"] + \
-            self.schema.process(locals()) + extra_args
+        self.cli += ["publish"] + self.schema.process(locals()) + extra_args
         return self
